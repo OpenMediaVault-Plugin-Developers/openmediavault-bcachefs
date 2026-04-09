@@ -1,0 +1,437 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the openmediavault-bcachefs package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: openmediavault-bcachefs\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"PO-Revision-Date: 2026-04-09 23:24+0000\n"
+"Language-Team: Hungarian (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/hu/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid ""
+"'Snapshots' keeps the N most recent; time units delete snapshots older than "
+"N days/weeks/months/years."
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "April"
+msgstr ""
+
+msgid "At reboot"
+msgstr ""
+
+msgid "August"
+msgstr ""
+
+msgid "Auto-unlock"
+msgstr ""
+
+msgid "Auto-unlock at boot"
+msgstr ""
+
+msgid "Bcachefs"
+msgstr ""
+
+msgid "CRC32c (default)"
+msgstr ""
+
+msgid "Certain date"
+msgstr ""
+
+msgid ""
+"Changing the suite will reinstall bcachefs-tools from the selected "
+"repository on the next Apply."
+msgstr ""
+
+msgid "Checksum"
+msgstr ""
+
+msgid ""
+"Checksum algorithm for data and metadata integrity verification. Disabled "
+"automatically when NoCOW is enabled."
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Compression"
+msgstr ""
+
+msgid ""
+"Compression algorithm applied to new data writes. Disabled automatically "
+"when NoCOW is enabled."
+msgstr ""
+
+msgid "Confirm Passphrase"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Create file system"
+msgstr ""
+
+msgid "Create the snapshot as read-only."
+msgstr ""
+
+msgid "Created scrub job."
+msgstr ""
+
+msgid "Created snapshot job."
+msgstr ""
+
+msgid "Created subvolume."
+msgstr ""
+
+msgid "Daily"
+msgstr ""
+
+msgid "Data Integrity"
+msgstr ""
+
+msgid "Day of month"
+msgstr ""
+
+msgid "Day of week"
+msgstr ""
+
+msgid "December"
+msgstr ""
+
+msgid "Devices"
+msgstr ""
+
+msgid "Disable COW"
+msgstr ""
+
+msgid "Disable auto-unlock"
+msgstr ""
+
+msgid ""
+"Do you really want to disable auto-unlock? The key file will be deleted and "
+"the filesystem will require a passphrase at next boot."
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Enable Auto-unlock"
+msgstr ""
+
+msgid "Enable auto-unlock"
+msgstr ""
+
+msgid ""
+"Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
+"NoCOW is enabled."
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Encrypted"
+msgstr ""
+
+msgid "Encryption"
+msgstr ""
+
+msgid "Every N day of month"
+msgstr ""
+
+msgid "Every N hour"
+msgstr ""
+
+msgid "Every N minute"
+msgstr ""
+
+msgid "February"
+msgstr ""
+
+msgid "Filesystem"
+msgstr ""
+
+msgid "Filesystems"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Hourly"
+msgstr ""
+
+msgid ""
+"If a device is not listed here, it is usually because the device already "
+"contains a file system or partitions. With the former, the file system can "
+"be mounted <a href='#/storage/filesystems/mount'>here</a>. For the latter, "
+"please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
+"supported."
+msgstr ""
+
+msgid "In Use"
+msgstr ""
+
+msgid "January"
+msgstr ""
+
+msgid "July"
+msgstr ""
+
+msgid "June"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Label"
+msgstr ""
+
+msgid "March"
+msgstr ""
+
+msgid "May"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "Monthly"
+msgstr ""
+
+msgid "Mountpoint"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "November"
+msgstr ""
+
+msgid "Number of copies to store for both data and metadata."
+msgstr ""
+
+msgid "October"
+msgstr ""
+
+msgid "Only alphanumeric characters, hyphens, and underscores are allowed."
+msgstr ""
+
+msgid "Only send an email if the job exits with an error."
+msgstr ""
+
+msgid "Optional label to identify this filesystem."
+msgstr ""
+
+msgid "Package suite"
+msgstr ""
+
+msgid "Parent"
+msgstr ""
+
+msgid "Passphrase"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Prefix"
+msgstr ""
+
+msgid "Read-only"
+msgstr ""
+
+msgid "Read-only snapshot"
+msgstr ""
+
+msgid "Replicas"
+msgstr ""
+
+msgid "Repository"
+msgstr ""
+
+msgid "Run"
+msgstr ""
+
+msgid "Run now"
+msgstr ""
+
+msgid "Run snapshot job"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid ""
+"Save the passphrase to a root-only key file so the filesystem unlocks "
+"automatically at boot. The key is stored in /etc/bcachefs/keys/."
+msgstr ""
+
+msgid "Schedule"
+msgstr ""
+
+msgid "Scheduling"
+msgstr ""
+
+msgid "Scrub Jobs"
+msgstr ""
+
+msgid "Scrub started."
+msgstr ""
+
+msgid "Select devices ..."
+msgstr ""
+
+msgid "Select the devices that will be used to create the file system."
+msgstr ""
+
+msgid "Send email on error only"
+msgstr ""
+
+msgid "Send output via email"
+msgstr ""
+
+msgid "Send the command output via email on completion."
+msgstr ""
+
+msgid "September"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Snapshot"
+msgstr ""
+
+msgid "Snapshot Jobs"
+msgstr ""
+
+msgid "Snapshot prefix"
+msgstr ""
+
+msgid ""
+"Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
+"<mountpoint>/.snapshots/<subvolume>/."
+msgstr ""
+
+msgid "Starting scrub ..."
+msgstr ""
+
+msgid "Subvolume"
+msgstr ""
+
+msgid "Subvolumes"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "The field should only contain * or a comma separated list of values."
+msgstr ""
+
+msgid ""
+"The filesystem or subvolume under which the new subvolume will be created."
+msgstr ""
+
+msgid "The name must not contain a slash."
+msgstr ""
+
+msgid "The name of the new subvolume."
+msgstr ""
+
+msgid ""
+"The number of devices must be at least equal to the number of replicas."
+msgstr ""
+
+msgid ""
+"The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
+"It is used to automatically unlock this filesystem at boot."
+msgstr ""
+
+msgid "The passphrases do not match."
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Time of execution"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "UUID"
+msgstr ""
+
+msgid "Unit"
+msgstr ""
+
+msgid "Updated scrub job."
+msgstr ""
+
+msgid "Updated snapshot job."
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+msgid ""
+"Write data in-place when possible. Improves performance for databases and VM"
+" image storage. Implicitly disables checksums, compression, and encryption."
+msgstr ""
+
+msgid "Yearly"
+msgstr ""
+
+msgid "bcachefs-tools-release — stable builds (best for production use)"
+msgstr ""
+
+msgid ""
+"bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
+" development)"
+msgstr ""
+
+msgid "days"
+msgstr ""
+
+msgid "months"
+msgstr ""
+
+msgid "snapshots"
+msgstr ""
+
+msgid "weeks"
+msgstr ""
+
+msgid "years"
+msgstr ""
