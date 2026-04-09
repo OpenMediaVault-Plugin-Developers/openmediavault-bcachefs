@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+. /etc/default/openmediavault
+. /usr/share/openmediavault/scripts/helper-functions
+
+case "$1" in
+  purge)
+    dpkg-trigger update-workbench
+    # Remove the bcachefs apt source entry from the OMV config database
+    # and re-run the apt salt state to drop the sources file.
+    omv_config_delete "/config/system/apt/sources/item[uris='https://apt.bcachefs.org/trixie']" || true
+    omv-salt deploy run --no-color apt || true
+  ;;
+
+  remove)
+    dpkg-trigger update-workbench
+  ;;
+
+  upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  ;;
+
+  *)
+    echo "postrm called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
+
+exit 0

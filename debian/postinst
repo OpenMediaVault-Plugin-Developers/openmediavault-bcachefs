@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+. /etc/default/openmediavault
+. /usr/share/openmediavault/scripts/helper-functions
+
+case "$1" in
+  configure)
+    # Activate package triggers.
+    dpkg-trigger update-workbench
+
+    # Add the bcachefs apt repository to OMV's apt source database and
+    # run the apt salt state so the repo is available before the user
+    # applies changes.
+    /usr/share/openmediavault/confdb/create.d/conf.service.bcachefs.sh
+    omv-salt deploy run --no-color apt || true
+
+    # Mark the bcachefs module dirty so the user is prompted to apply
+    # changes, which will install bcachefs-tools (and bcachefs-kernel-dkms
+    # if the running kernel does not include bcachefs).
+    omv_module_set_dirty bcachefs
+  ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
+
+exit 0

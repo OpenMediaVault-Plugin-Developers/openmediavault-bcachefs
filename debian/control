@@ -1,0 +1,19 @@
+Source: openmediavault-bcachefs
+Section: net
+XB-Plugin-Section: filesystems
+Priority: optional
+Maintainer: OpenMediaVault Plugin Developers <plugins@omv-extras.org>
+Build-Depends: debhelper-compat (= 13), dh-sequence-single-binary
+Standards-Version: 4.7.2
+Homepage: http://omv-extras.org/
+
+Package: openmediavault-bcachefs
+Architecture: all
+Depends: openmediavault (>= 8),
+         openmediavault-apt,
+         ${misc:Depends}
+Description: OpenMediaVault plugin for Bcachefs
+ Bcachefs is a next-generation Linux filesystem featuring copy-on-write,
+ checksumming, compression, encryption, snapshots, and multi-device RAID
+ with configurable replication. This plugin integrates Bcachefs filesystem
+ creation and management into OpenMediaVault.
