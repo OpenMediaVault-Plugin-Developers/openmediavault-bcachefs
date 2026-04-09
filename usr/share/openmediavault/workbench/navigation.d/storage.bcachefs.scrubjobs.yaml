@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "storage.bcachefs.scrubjobs"
+  text: _("Scrub Jobs")
+  position: 40
+  icon: mdi:progress-wrench
+  url: "/storage/bcachefs/scrubjobs"

@@ -1,0 +1,127 @@
+#!/bin/bash
+# Create a bcachefs snapshot and prune old ones.
+# Usage: omv-bcachefs-snapshot <subvolume_path> <prefix> <retention>
+#                              [-u count|days|weeks|months|years]
+#                              [-e always|onerror] [-c comment]
+#                              [-r] (read-only snapshot)
+set -euo pipefail
+
+LOGFILE="/var/log/omv-bcachefs-snapshot.log"
+
+SUBVOL_PATH="$1"
+PREFIX="$2"
+RETENTION="${3:-7}"
+shift 3 || true
+
+readonly_flag=""
+retention_unit="count"
+email_mode=""
+email_comment=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -u) retention_unit="$2"; shift 2 ;;
+        -e) email_mode="$2";     shift 2 ;;
+        -c) email_comment="$2";  shift 2 ;;
+        -r) readonly_flag="-r";  shift ;;
+        *)  shift ;;
+    esac
+done
+
+tmpfile=""
+if [ -n "${email_mode}" ]; then
+    tmpfile=$(mktemp)
+    exec > "${tmpfile}" 2>&1
+else
+    exec > >(tee -a "${LOGFILE}") 2>&1
+fi
+
+_send_email() {
+    local rc="$1"
+    if [ -f "${tmpfile:-}" ]; then
+        cat "${tmpfile}" >> "${LOGFILE}"
+    fi
+    if [ -n "${email_mode}" ] && [ -f "${tmpfile:-}" ]; then
+        if [ "${email_mode}" = "always" ] || \
+           { [ "${email_mode}" = "onerror" ] && [ "${rc}" -ne 0 ]; }; then
+            mail -E -s "Bcachefs Snapshot${email_comment:+ - ${email_comment}}" \
+                 -a "From: Cron Daemon <root>" root < "${tmpfile}" >/dev/null 2>&1
+        fi
+        rm -f "${tmpfile}"
+    fi
+}
+trap '_send_email $?' EXIT
+
+# Find the bcachefs mountpoint that contains SUBVOL_PATH.
+# Use the longest matching mountpoint (most specific).
+MOUNTPOINT=""
+while IFS= read -r line; do
+    parts=( $line )
+    [ "${parts[2]:-}" = "bcachefs" ] || continue
+    mnt=$(printf '%b' "${parts[1]//\\040/ }")
+    if [[ "$SUBVOL_PATH" == "$mnt" ]] || [[ "$SUBVOL_PATH" == "$mnt/"* ]]; then
+        if [ -z "$MOUNTPOINT" ] || [ "${#mnt}" -gt "${#MOUNTPOINT}" ]; then
+            MOUNTPOINT="$mnt"
+        fi
+    fi
+done < /proc/mounts
+
+if [ -z "$MOUNTPOINT" ]; then
+    echo "ERROR: No bcachefs mountpoint found covering '${SUBVOL_PATH}'" >&2
+    exit 1
+fi
+
+# Derive a stable snapshot directory path.
+RELPATH="${SUBVOL_PATH#${MOUNTPOINT}}"
+RELPATH="${RELPATH#/}"
+SNAP_LABEL="${RELPATH:-root}"
+SNAPDIR="${MOUNTPOINT}/.snapshots/${SNAP_LABEL}"
+
+mkdir -p "${SNAPDIR}"
+
+SNAPNAME="${PREFIX}-$(date +%Y%m%d-%H%M%S)"
+SNAPDEST="${SNAPDIR}/${SNAPNAME}"
+
+echo "$(date -Iseconds): Creating snapshot ${SUBVOL_PATH} -> ${SNAPDEST}"
+bcachefs subvolume snapshot ${readonly_flag:+"$readonly_flag"} "${SUBVOL_PATH}" "${SNAPDEST}"
+
+# List snapshots matching our prefix in the snapshot dir, oldest first.
+mapfile -t SNAPS < <(find "${SNAPDIR}" -maxdepth 1 -mindepth 1 \
+    -name "${PREFIX}-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]" \
+    | sort 2>/dev/null || true)
+
+_delete_snap() {
+    local snap="$1"
+    echo "$(date -Iseconds): Pruning old snapshot ${snap}"
+    if ! bcachefs subvolume delete "${snap}" 2>/dev/null; then
+        rm -rf -- "${snap}"
+    fi
+}
+
+if [ "${retention_unit}" = "count" ]; then
+    COUNT="${#SNAPS[@]}"
+    if [ "${COUNT}" -gt "${RETENTION}" ]; then
+        TO_DELETE=$(( COUNT - RETENTION ))
+        for snap in "${SNAPS[@]::${TO_DELETE}}"; do
+            [ -n "${snap}" ] || continue
+            _delete_snap "${snap}"
+        done
+    fi
+else
+    cutoff_ts=$(date -d "now - ${RETENTION} ${retention_unit}" "+%Y%m%d-%H%M%S" 2>/dev/null || echo "")
+    if [ -n "${cutoff_ts}" ]; then
+        for snap in "${SNAPS[@]}"; do
+            [ -n "${snap}" ] || continue
+            snap_basename=$(basename "${snap}")
+            snap_ts="${snap_basename##${PREFIX}-}"
+            if [[ "${snap_ts}" < "${cutoff_ts}" ]]; then
+                _delete_snap "${snap}"
+            fi
+        done
+    fi
+fi
+
+FINAL_COUNT=$(find "${SNAPDIR}" -maxdepth 1 -mindepth 1 \
+    -name "${PREFIX}-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]" \
+    | wc -l 2>/dev/null || echo 0)
+echo "$(date -Iseconds): Done. ${SNAPDIR} has ${FINAL_COUNT} snapshot(s) matching prefix '${PREFIX}'."

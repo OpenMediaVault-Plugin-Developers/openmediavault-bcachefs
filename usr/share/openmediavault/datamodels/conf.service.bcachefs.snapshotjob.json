@@ -1,0 +1,70 @@
+{
+  "type": "config",
+  "id": "conf.service.bcachefs.snapshotjob",
+  "queryinfo": {
+    "xpath": "//services/bcachefs/snapshotjobs/job",
+    "iterable": true,
+    "idproperty": "uuid"
+  },
+  "properties": {
+    "uuid": {
+      "type": "string",
+      "format": "uuidv4"
+    },
+    "enable": {
+      "type": "boolean"
+    },
+    "subvolume": {
+      "type": "string"
+    },
+    "prefix": {
+      "type": "string"
+    },
+    "retention": {
+      "type": "integer"
+    },
+    "retentionunit": {
+      "type": "string",
+      "default": "count"
+    },
+    "readonly": {
+      "type": "boolean"
+    },
+    "execution": {
+      "type": "string"
+    },
+    "minute": {
+      "type": "string"
+    },
+    "hour": {
+      "type": "string"
+    },
+    "dayofmonth": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string"
+    },
+    "dayofweek": {
+      "type": "string"
+    },
+    "everynminute": {
+      "type": "boolean"
+    },
+    "everynhour": {
+      "type": "boolean"
+    },
+    "everyndayofmonth": {
+      "type": "boolean"
+    },
+    "sendemail": {
+      "type": "boolean"
+    },
+    "emailonerror": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": "string"
+    }
+  }
+}

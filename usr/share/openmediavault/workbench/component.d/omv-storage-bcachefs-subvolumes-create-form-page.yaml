@@ -1,0 +1,44 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-subvolumes-create-form-page
+  type: formPage
+  config:
+    request:
+      service: Bcachefs
+      post:
+        method: createSubvolume
+    fields:
+      - type: divider
+        title: _("Subvolume")
+      - type: select
+        name: parent
+        label: _("Parent")
+        value: ""
+        hint: _("The filesystem or subvolume under which the new subvolume will be created.")
+        store:
+          proxy:
+            service: Bcachefs
+            get:
+              method: getSubvolumes
+        validators:
+          required: true
+      - type: textInput
+        name: name
+        label: _("Name")
+        value: ""
+        hint: _("The name of the new subvolume.")
+        validators:
+          required: true
+          pattern:
+            pattern: "^[^/]+$"
+            errorData: _("The name must not contain a slash.")
+    buttons:
+      - template: submit
+        execute:
+          type: url
+          url: /storage/bcachefs/subvolumes
+      - template: cancel
+        execute:
+          type: url
+          url: /storage/bcachefs/subvolumes

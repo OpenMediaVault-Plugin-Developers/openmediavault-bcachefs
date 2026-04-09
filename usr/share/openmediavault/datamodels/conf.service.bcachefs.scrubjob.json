@@ -1,0 +1,57 @@
+{
+  "type": "config",
+  "id": "conf.service.bcachefs.scrubjob",
+  "queryinfo": {
+    "xpath": "//services/bcachefs/scrubjobs/job",
+    "iterable": true,
+    "idproperty": "uuid"
+  },
+  "properties": {
+    "uuid": {
+      "type": "string",
+      "format": "uuidv4"
+    },
+    "enable": {
+      "type": "boolean"
+    },
+    "fsuuid": {
+      "type": "string"
+    },
+    "execution": {
+      "type": "string"
+    },
+    "minute": {
+      "type": "string"
+    },
+    "hour": {
+      "type": "string"
+    },
+    "dayofmonth": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string"
+    },
+    "dayofweek": {
+      "type": "string"
+    },
+    "everynminute": {
+      "type": "boolean"
+    },
+    "everynhour": {
+      "type": "boolean"
+    },
+    "everyndayofmonth": {
+      "type": "boolean"
+    },
+    "sendemail": {
+      "type": "boolean"
+    },
+    "emailonerror": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": "string"
+    }
+  }
+}

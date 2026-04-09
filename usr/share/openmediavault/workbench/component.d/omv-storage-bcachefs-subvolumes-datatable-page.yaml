@@ -1,0 +1,61 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-subvolumes-datatable-page
+  type: datatablePage
+  config:
+    autoReload: false
+    hasSearchField: true
+    stateId: e5f6a7b8-c9d0-1234-efab-234567890123
+    store:
+      proxy:
+        service: Bcachefs
+        get:
+          method: getSubvolumeList
+    columns:
+      - name: _("Mountpoint")
+        prop: mountpoint
+        flexGrow: 2
+        sortable: true
+      - name: _("Path")
+        prop: relpath
+        flexGrow: 3
+        sortable: true
+      - name: _("Read-only")
+        prop: readonly
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: checkIcon
+      - name: _("Snapshot")
+        prop: issnapshot
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: checkIcon
+      - name: _("In Use")
+        prop: inuse
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: checkIcon
+    actions:
+      - template: create
+        execute:
+          type: url
+          url: "/storage/bcachefs/subvolumes/create"
+      - template: delete
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: falsy
+              arg0:
+                prop: issnapshot
+            - operator: falsy
+              arg0:
+                prop: inuse
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: deleteSubvolume
+            params:
+              path: "{{ _selected[0].path }}"

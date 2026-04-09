@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs"
+  title: _("Bcachefs")
+  component: omv-storage-bcachefs-navigation-page

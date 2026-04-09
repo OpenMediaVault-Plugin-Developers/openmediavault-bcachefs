@@ -1,0 +1,92 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-snapshotjobs-datatable-page
+  type: datatablePage
+  config:
+    autoReload: false
+    hasSearchField: true
+    stateId: c3d4e5f6-a7b8-9012-cdef-012345678901
+    store:
+      proxy:
+        service: Bcachefs
+        get:
+          method: getSnapshotJobList
+    columns:
+      - name: _("Enabled")
+        prop: enable
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: checkIcon
+      - name: _("Subvolume")
+        prop: subvolume
+        flexGrow: 3
+        sortable: true
+      - name: _("Prefix")
+        prop: prefix
+        flexGrow: 1
+        sortable: true
+      - name: _("Keep")
+        prop: retention
+        flexGrow: 1
+        sortable: true
+      - name: _("Read-only")
+        prop: readonly
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: checkIcon
+      - name: _("Scheduling")
+        prop: ""
+        flexGrow: 2
+        cellTemplateName: template
+        cellTemplateConfig: |
+          {% if execution == "exactly" %}
+          {% set _minute = minute %}
+          {% set _hour = hour %}
+          {% set _dayofmonth = dayofmonth %}
+          {% if everynminute %}{% set _minute %}*/{{ minute }}{% endset %}{% endif %}
+          {% if everynhour %}{% set _hour %}*/{{ hour }}{% endset %}{% endif %}
+          {% if everyndayofmonth %}{% set _dayofmonth %}*/{{ dayofmonth }}{% endset %}{% endif %}
+          {{ [_minute, _hour, _dayofmonth, month, dayofweek] | join(" ") | cron2human }}
+          {% else %}
+          {{ execution | capitalize | translate }}
+          {% endif %}
+      - name: _("Comment")
+        prop: comment
+        flexGrow: 2
+        sortable: true
+    actions:
+      - template: create
+        execute:
+          type: url
+          url: "/storage/bcachefs/snapshotjobs/create"
+      - template: edit
+        execute:
+          type: url
+          url: "/storage/bcachefs/snapshotjobs/edit/{{ _selected[0].uuid }}"
+      - template: delete
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: deleteSnapshotJob
+            params:
+              uuid: "{{ _selected[0].uuid }}"
+      - type: iconButton
+        tooltip: _("Run")
+        icon: mdi:play-box-outline
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Run snapshot job")
+              startOnInit: true
+              showCompletion: true
+              request:
+                service: Bcachefs
+                method: runSnapshotJobBg
+                params:
+                  uuid: "{{ _selected[0].uuid }}"

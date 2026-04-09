@@ -1,0 +1,62 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-filesystems-autounlock-form-page
+  type: formPage
+  config:
+    request:
+      service: Bcachefs
+      get:
+        method: getFilesystem
+      post:
+        method: enableAutoUnlock
+    fields:
+      - type: divider
+        title: _("Filesystem")
+      - type: textInput
+        name: uuid
+        label: _("UUID")
+        disabled: true
+      - type: textInput
+        name: label
+        label: _("Label")
+        disabled: true
+      - type: textInput
+        name: mountpoint
+        label: _("Mountpoint")
+        disabled: true
+      - type: divider
+        title: _("Passphrase")
+      - type: hint
+        hintType: info
+        text: _("The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. It is used to automatically unlock this filesystem at boot.")
+      - type: passwordInput
+        name: passphrase
+        label: _("Passphrase")
+        value: ""
+        validators:
+          required: true
+      - type: passwordInput
+        name: passphrase2
+        label: _("Confirm Passphrase")
+        value: ""
+        submitValue: false
+        validators:
+          required: true
+          custom:
+            - constraint:
+                operator: eq
+                arg0:
+                  prop: passphrase
+                arg1:
+                  prop: passphrase2
+              errorData: _("The passphrases do not match.")
+    buttons:
+      - template: submit
+        execute:
+          type: url
+          url: /storage/bcachefs/filesystems
+      - template: cancel
+        execute:
+          type: url
+          url: /storage/bcachefs/filesystems

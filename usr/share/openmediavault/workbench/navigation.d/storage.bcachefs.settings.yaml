@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "storage.bcachefs.settings"
+  text: _("Settings")
+  position: 50
+  icon: mdi:cog-outline
+  url: "/storage/bcachefs/settings"

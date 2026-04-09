@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "storage.bcachefs.snapshotjobs"
+  text: _("Snapshot Jobs")
+  position: 30
+  icon: mdi:camera-timer
+  url: "/storage/bcachefs/snapshotjobs"

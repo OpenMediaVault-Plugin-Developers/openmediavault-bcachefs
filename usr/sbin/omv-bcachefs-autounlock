@@ -1,0 +1,30 @@
+#!/bin/bash
+# Auto-unlock bcachefs encrypted filesystems at boot.
+# Key files are stored in /etc/bcachefs/keys/<uuid>.key (mode 600, owned by root).
+# This script is run by bcachefs-autounlock.service before local-fs.target.
+
+set -euo pipefail
+
+KEYS_DIR="/etc/bcachefs/keys"
+
+if [ ! -d "$KEYS_DIR" ]; then
+    exit 0
+fi
+
+for keyfile in "$KEYS_DIR"/*.key; do
+    [ -f "$keyfile" ] || continue
+
+    uuid=$(basename "$keyfile" .key)
+    device="/dev/disk/by-uuid/$uuid"
+
+    if [ ! -e "$device" ]; then
+        echo "bcachefs-autounlock: device $device not found, skipping" >&2
+        continue
+    fi
+
+    if /usr/sbin/bcachefs unlock "$device" < "$keyfile" 2>/dev/null; then
+        echo "bcachefs-autounlock: unlocked $uuid"
+    else
+        echo "bcachefs-autounlock: failed to unlock $uuid (wrong passphrase or already unlocked)" >&2
+    fi
+done

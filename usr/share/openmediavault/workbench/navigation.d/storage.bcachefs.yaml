@@ -1,0 +1,7 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "storage.bcachefs"
+  text: _("Bcachefs")
+  icon: "mdi:harddisk"
+  url: "/storage/bcachefs"

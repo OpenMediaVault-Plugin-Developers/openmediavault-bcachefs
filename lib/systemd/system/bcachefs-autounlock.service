@@ -1,0 +1,16 @@
+[Unit]
+Description=Auto-unlock bcachefs encrypted filesystems
+Documentation=https://bcachefs.org
+DefaultDependencies=no
+Before=local-fs.target
+After=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/omv-bcachefs-autounlock
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=local-fs.target

@@ -10,16 +10,27 @@ case "$1" in
     # Activate package triggers.
     dpkg-trigger update-workbench
 
-    # Add the bcachefs apt repository to OMV's apt source database and
-    # run the apt salt state so the repo is available before the user
-    # applies changes.
-    /usr/share/openmediavault/confdb/create.d/conf.service.bcachefs.sh
+    # Initialize configuration database.
+    omv-confdbadm create "conf.service.bcachefs"
+    if [ -n "$2" ]; then
+      omv-confdbadm migrate "conf.service.bcachefs" "${2}"
+    fi
+
+    # Enable the auto-unlock service (no-op if no key files exist yet).
+    systemctl enable bcachefs-autounlock.service || true
+
+    # Add the bcachefs apt repository
     omv-salt deploy run --no-color apt || true
 
-    # Mark the bcachefs module dirty so the user is prompted to apply
-    # changes, which will install bcachefs-tools (and bcachefs-kernel-dkms
-    # if the running kernel does not include bcachefs).
-    omv_module_set_dirty bcachefs
+    # Run bcachefs salt states (package install + cron setup).
+    omv-salt deploy run --no-color bcachefs bcachesfcron || true
+
+    # Mark the bcachefs module dirty if the kernel module is not loaded,
+    # so the user is prompted to apply changes to install bcachefs-tools
+    # (and bcachefs-kernel-dkms if needed).
+    if ! lsmod | grep -q "^bcachefs "; then
+      omv_module_set_dirty bcachefs
+    fi
   ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

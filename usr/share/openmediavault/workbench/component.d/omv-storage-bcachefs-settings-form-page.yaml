@@ -1,0 +1,29 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-settings-form-page
+  type: formPage
+  config:
+    request:
+      service: Bcachefs
+      get:
+        method: getSettings
+      post:
+        method: setSettings
+    fields:
+      - type: divider
+        title: _("Repository")
+      - type: select
+        name: suite
+        label: _("Package suite")
+        value: "bcachefs-tools-release"
+        hint: _("Changing the suite will reinstall bcachefs-tools from the selected repository on the next Apply.")
+        store:
+          data:
+            - ["bcachefs-tools-release", _("bcachefs-tools-release — stable builds (best for production use)")]
+            - ["bcachefs-tools-snapshot", _("bcachefs-tools-snapshot — latest builds, updated often (best for testing and development)")]
+        validators:
+          required: true
+    buttons:
+      - template: submit
+      - template: cancel

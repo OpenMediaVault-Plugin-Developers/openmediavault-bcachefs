@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/snapshotjobs"
+  title: _("Snapshot Jobs")
+  component: omv-storage-bcachefs-snapshotjobs-datatable-page

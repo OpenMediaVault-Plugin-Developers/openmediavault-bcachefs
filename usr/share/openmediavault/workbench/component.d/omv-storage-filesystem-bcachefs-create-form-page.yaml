@@ -16,27 +16,13 @@ data:
         disabled: true
         value: BCACHEFS
         submitValue: false
-      - type: numberInput
-        name: replicas
-        label: _("Number of replicas")
-        value: 1
-        min: 1
-        max: 10
-        step: 1
-      - type: select
-        name: compression
-        label: _("Compression")
-        value: "none"
-        store:
-          data:
-            - - "none"
-              - "None"
-            - - "gzip"
-              - "GZIP"
-            - - "lz4"
-              - "LZ4"
-            - - "zstd"
-              - "Zstd"
+      - type: divider
+        title: _("General")
+      - type: textInput
+        name: label
+        label: _("Label")
+        value: ""
+        hint: _("Optional label to identify this filesystem.")
       - type: select
         name: devicefiles
         label: _("Devices")
@@ -66,6 +52,108 @@ data:
                 arg1:
                   prop: replicas
               errorData: _("The number of devices must be at least equal to the number of replicas.")
+      - type: numberInput
+        name: replicas
+        label: _("Replicas")
+        value: 1
+        min: 1
+        max: 10
+        step: 1
+        hint: _("Number of copies to store for both data and metadata.")
+      - type: divider
+        title: _("Data Integrity")
+      - type: select
+        name: compression
+        label: _("Compression")
+        value: "none"
+        hint: _("Compression algorithm applied to new data writes. Disabled automatically when NoCOW is enabled.")
+        store:
+          data:
+            - - "none"
+              - _("None")
+            - - "lz4"
+              - "LZ4"
+            - - "gzip"
+              - "GZIP"
+            - - "zstd"
+              - "Zstd"
+      - type: select
+        name: checksum
+        label: _("Checksum")
+        value: "crc32c"
+        hint: _("Checksum algorithm for data and metadata integrity verification. Disabled automatically when NoCOW is enabled.")
+        store:
+          data:
+            - - "crc32c"
+              - _("CRC32c (default)")
+            - - "crc64"
+              - "CRC64"
+            - - "xxhash"
+              - "xxHash"
+            - - "none"
+              - _("None")
+      - type: divider
+        title: _("Advanced")
+      - type: checkbox
+        name: nocow
+        label: _("Disable COW")
+        value: false
+        hint: _("Write data in-place when possible. Improves performance for databases and VM image storage. Implicitly disables checksums, compression, and encryption.")
+      - type: checkbox
+        name: encrypted
+        label: _("Encryption")
+        value: false
+        hint: _("Enable whole-filesystem encryption (chacha20/poly1305). Not available when NoCOW is enabled.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: truthy
+              arg0:
+                prop: nocow
+      - type: passwordInput
+        name: passphrase
+        label: _("Passphrase")
+        value: ""
+        validators:
+          required: true
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: encrypted
+      - type: passwordInput
+        name: passphrase2
+        label: _("Confirm Passphrase")
+        value: ""
+        submitValue: false
+        validators:
+          required: true
+          custom:
+            - constraint:
+                operator: eq
+                arg0:
+                  prop: passphrase
+                arg1:
+                  prop: passphrase2
+              errorData: _("The passphrases do not match.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: encrypted
+      - type: checkbox
+        name: autounlock
+        label: _("Auto-unlock at boot")
+        value: false
+        hint: _("Save the passphrase to a root-only key file so the filesystem unlocks automatically at boot. The key is stored in /etc/bcachefs/keys/.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: encrypted
     buttons:
       - template: submit
         execute:
@@ -79,8 +167,14 @@ data:
                 service: Bcachefs
                 method: createFilesystem
                 params:
+                  label: '{{ label }}'
                   replicas: '{{ replicas }}'
                   compression: '{{ compression }}'
+                  checksum: '{{ checksum }}'
+                  nocow: '{{ nocow }}'
+                  encrypted: '{{ encrypted }}'
+                  passphrase: '{{ passphrase }}'
+                  autounlock: '{{ autounlock }}'
                   devicefiles: '{{ devicefiles }}'
               buttons:
                 stop:

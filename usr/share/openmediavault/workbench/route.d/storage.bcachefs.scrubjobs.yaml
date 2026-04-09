@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/scrubjobs"
+  title: _("Scrub Jobs")
+  component: omv-storage-bcachefs-scrubjobs-datatable-page

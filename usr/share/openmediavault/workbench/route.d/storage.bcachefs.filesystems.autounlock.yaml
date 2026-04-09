@@ -1,0 +1,7 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/filesystems/autounlock/:uuid"
+  title: _("Enable Auto-unlock")
+  editing: true
+  component: omv-storage-bcachefs-filesystems-autounlock-form-page

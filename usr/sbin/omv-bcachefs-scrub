@@ -1,0 +1,48 @@
+#!/bin/bash
+# Run a bcachefs data scrub for a filesystem UUID.
+# Usage: omv-bcachefs-scrub <uuid> [-e always|onerror] [-c comment]
+set -euo pipefail
+
+LOGFILE="/var/log/omv-bcachefs-scrub.log"
+
+UUID="$1"
+shift
+
+email_mode=""
+email_comment=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -e) email_mode="$2"; shift 2 ;;
+        -c) email_comment="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+tmpfile=""
+if [ -n "${email_mode}" ]; then
+    tmpfile=$(mktemp)
+    exec > "${tmpfile}" 2>&1
+else
+    exec > >(tee -a "${LOGFILE}") 2>&1
+fi
+
+_send_email() {
+    local rc="$1"
+    if [ -f "${tmpfile:-}" ]; then
+        cat "${tmpfile}" >> "${LOGFILE}"
+    fi
+    if [ -n "${email_mode}" ] && [ -f "${tmpfile:-}" ]; then
+        if [ "${email_mode}" = "always" ] || \
+           { [ "${email_mode}" = "onerror" ] && [ "${rc}" -ne 0 ]; }; then
+            mail -E -s "Bcachefs Scrub${email_comment:+ - ${email_comment}}" \
+                 -a "From: Cron Daemon <root>" root < "${tmpfile}" >/dev/null 2>&1
+        fi
+        rm -f "${tmpfile}"
+    fi
+}
+trap '_send_email $?' EXIT
+
+FSDEV="/dev/disk/by-uuid/${UUID}"
+echo "$(date -Iseconds): Starting bcachefs scrub on ${FSDEV} (UUID: ${UUID})"
+bcachefs scrub "${FSDEV}"
+echo "$(date -Iseconds): Scrub completed successfully."

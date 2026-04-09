@@ -1,6 +1,71 @@
 [
   {
     "type": "rpc",
+    "id": "rpc.bcachefs.createsubvolume",
+    "params": {
+      "type": "object",
+      "properties": {
+        "parent": {
+          "type": "string",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.deletesubvolume",
+    "params": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setsettings",
+    "params": {
+      "type": "object",
+      "properties": {
+        "suite": {
+          "type": "string",
+          "enum": ["bcachefs-tools-release", "bcachefs-tools-snapshot"],
+          "required": true
+        }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.getfilesystem",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string", "required": true }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.enableautounlock",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid":       { "type": "string", "required": true },
+        "passphrase": { "type": "string", "required": true }
+      }
+    }
+  },
+  {
+    "type": "rpc",
     "id": "rpc.bcachefs.createfilesystem",
     "params": {
       "type": "object",
@@ -9,21 +74,168 @@
           "type": "string",
           "required": false
         },
-        "compression": {
-          "type": "string",
-          "enum": ["none", "lz4", "gzip", "zstd"],
-          "required": false
-        },
         "replicas": {
           "type": "number",
           "minimum": 1,
           "maximum": 10,
           "required": false
         },
+        "compression": {
+          "type": "string",
+          "enum": ["none", "lz4", "gzip", "zstd"],
+          "required": false
+        },
+        "checksum": {
+          "type": "string",
+          "enum": ["none", "crc32c", "crc64", "xxhash"],
+          "required": false
+        },
+        "nocow": {
+          "type": "boolean",
+          "required": false
+        },
+        "encrypted": {
+          "type": "boolean",
+          "required": false
+        },
+        "passphrase": {
+          "type": "string",
+          "required": false
+        },
+        "autounlock": {
+          "type": "boolean",
+          "required": false
+        },
         "devicefiles": {
           "type": "string",
           "required": true
         }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setsnapshotjob",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "required": true
+        },
+        "enable": {
+          "type": "boolean",
+          "required": true
+        },
+        "subvolume": {
+          "type": "string",
+          "required": true
+        },
+        "prefix": {
+          "type": "string",
+          "required": true
+        },
+        "retention": {
+          "type": "integer",
+          "minimum": 1,
+          "required": true
+        },
+        "retentionunit": {
+          "type": "string",
+          "enum": ["count", "days", "weeks", "months", "years"]
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "execution": {
+          "type": "string",
+          "enum": [
+            "exactly", "hourly", "daily", "weekly",
+            "monthly", "yearly", "reboot"
+          ],
+          "required": true
+        },
+        "minute": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hour": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dayofmonth": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "month": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dayofweek": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "everynminute": { "type": "boolean" },
+        "everynhour": { "type": "boolean" },
+        "everyndayofmonth": { "type": "boolean" },
+        "sendemail": { "type": "boolean" },
+        "emailonerror": { "type": "boolean" },
+        "comment": { "type": "string" }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setscrubjob",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "required": true
+        },
+        "enable": {
+          "type": "boolean",
+          "required": true
+        },
+        "fsuuid": {
+          "type": "string",
+          "required": true
+        },
+        "execution": {
+          "type": "string",
+          "enum": [
+            "exactly", "hourly", "daily", "weekly",
+            "monthly", "yearly", "reboot"
+          ],
+          "required": true
+        },
+        "minute": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hour": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dayofmonth": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "month": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dayofweek": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "everynminute": { "type": "boolean" },
+        "everynhour": { "type": "boolean" },
+        "everyndayofmonth": { "type": "boolean" },
+        "sendemail": { "type": "boolean" },
+        "emailonerror": { "type": "boolean" },
+        "comment": { "type": "string" }
       }
     }
   }
