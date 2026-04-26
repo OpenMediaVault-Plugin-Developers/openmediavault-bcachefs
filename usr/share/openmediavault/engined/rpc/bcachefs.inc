@@ -223,6 +223,8 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 "mountpoint"  => $fs['mountpoint'],
                 "encrypted"   => $fs['encrypted'],
                 "autounlock"  => file_exists($keyFile),
+                "devicecount" => $fs['devicecount'],
+                "replicas"    => $fs['replicas'],
             ];
         }
         return $this->applyFilter($result, $params['start'],
@@ -740,8 +742,9 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             // Try each device in turn; on multi-device arrays the first listed
             // device may not always be readable (e.g. permission races at mount
             // time), so fall through to the next until one succeeds.
-            $label     = null;
-            $encrypted = false;
+            $label       = null;
+            $encrypted   = false;
+            $replicas    = 1;
             foreach ($allDevices as $device) {
                 // Use exec() directly so we capture output regardless of exit
                 // code.  bcachefs show-super exits non-zero on some device types
@@ -763,15 +766,20 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 if (preg_match('/^Features:.*\bencrypt\b/m', $superText)) {
                     $encrypted = true;
                 }
+                if (preg_match('/^\s*data_replicas:\s+(\d+)/m', $superText, $rm)) {
+                    $replicas = intval($rm[1]);
+                }
                 break; // Superblock read succeeded; stop trying devices.
             }
 
             $result[] = [
-                "uuid"       => $uuid,
-                "mountpoint" => $mnt,
-                "device"     => $firstDevice,
-                "label"      => $label,
-                "encrypted"  => $encrypted,
+                "uuid"        => $uuid,
+                "mountpoint"  => $mnt,
+                "device"      => $firstDevice,
+                "devicecount" => count($allDevices),
+                "label"       => $label,
+                "encrypted"   => $encrypted,
+                "replicas"    => $replicas,
             ];
         }
         return $result;

@@ -59,7 +59,7 @@ data:
         min: 1
         max: 10
         step: 1
-        hint: _("Number of copies to store for both data and metadata.")
+        hint: _("Number of copies to store for both data and metadata. Usable space ≈ total raw ÷ replicas — df shows raw capacity")
       - type: divider
         title: _("Data Integrity")
       - type: select

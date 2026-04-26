@@ -13,6 +13,11 @@ data:
         get:
           method: getFilesystemList
     columns:
+      - name: _("UUID")
+        prop: uuid
+        flexGrow: 2
+        sortable: true
+        hidden: true
       - name: _("Label")
         prop: label
         flexGrow: 2
@@ -20,13 +25,13 @@ data:
         cellTemplateName: text
         cellTemplateConfig:
           value: "{{ label || uuid }}"
-      - name: _("UUID")
-        prop: uuid
-        flexGrow: 3
+      - name: _("Devices")
+        prop: devicecount
+        flexGrow: 1
         sortable: true
-      - name: _("Mountpoint")
-        prop: mountpoint
-        flexGrow: 3
+      - name: _("Replicas")
+        prop: replicas
+        flexGrow: 1
         sortable: true
       - name: _("Encrypted")
         prop: encrypted
@@ -38,6 +43,11 @@ data:
         flexGrow: 1
         sortable: true
         cellTemplateName: checkIcon
+      - name: _("Mountpoint")
+        prop: mountpoint
+        flexGrow: 3
+        sortable: true
+        cellTemplateName: copyToClipboard
     actions:
       - type: iconButton
         icon: mdi:lock-open-outline
