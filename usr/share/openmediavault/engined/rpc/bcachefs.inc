@@ -97,11 +97,15 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
     public function createFilesystem($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $params['nocow']      = filter_var($params['nocow']      ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['encrypted']  = filter_var($params['encrypted']  ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['autounlock'] = filter_var($params['autounlock'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['replicas']   = intval($params['replicas'] ?? 1);
         $this->validateMethodParams($params, "rpc.bcachefs.createfilesystem");
 
-        $nocow      = !empty($params['nocow']);
-        $encrypted  = !$nocow && !empty($params['encrypted']);
-        $autounlock = $encrypted && !empty($params['autounlock']);
+        $nocow = $params['nocow'];
+        $encrypted = !$nocow && $params['encrypted'];
+        $autounlock = $encrypted && $params['autounlock'];
         if ($encrypted && empty($params['passphrase'])) {
             throw new \OMV\Exception(
                 "A passphrase is required when encryption is enabled.");

@@ -110,12 +110,20 @@ data:
               operator: truthy
               arg0:
                 prop: nocow
+          - type: unchecked
+            constraint:
+              operator: truthy
+              arg0:
+                prop: nocow
       - type: passwordInput
         name: passphrase
         label: _("Passphrase")
         value: ""
         validators:
-          required: true
+          requiredIf:
+            operator: truthy
+            arg0:
+              prop: encrypted
         modifiers:
           - type: hidden
             constraint:
@@ -128,7 +136,10 @@ data:
         value: ""
         submitValue: false
         validators:
-          required: true
+          requiredIf:
+            operator: truthy
+            arg0:
+              prop: encrypted
           custom:
             - constraint:
                 operator: eq
