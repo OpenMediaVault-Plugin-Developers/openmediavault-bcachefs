@@ -58,7 +58,18 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $db  = \OMV\Config\Database::getInstance();
         $obj = $db->get("conf.service.bcachefs");
-        return ["suite" => $obj->get("suite")];
+
+        $kernelRelease = trim(shell_exec('uname -r') ?: '');
+        $parts = explode('.', $kernelRelease);
+        $major = intval($parts[0] ?? 0);
+        $minor = intval(explode('-', $parts[1] ?? '0')[0]);
+        $kernelOk = ($major > 6) || ($major === 6 && $minor >= 16);
+
+        return [
+            "suite"         => $obj->get("suite"),
+            "kernelOk"      => $kernelOk,
+            "kernelVersion" => $kernelRelease,
+        ];
     }
 
     public function setSettings($params, $context)

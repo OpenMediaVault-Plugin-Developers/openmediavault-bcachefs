@@ -11,6 +11,15 @@ data:
       post:
         method: setSettings
     fields:
+      - type: hint
+        hintType: warning
+        text: _("bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ kernelVersion }}) is not supported — the DKMS module will not be installed. Upgrade your kernel and reboot to enable bcachefs.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: truthy
+              arg0:
+                prop: kernelOk
       - type: divider
         title: _("Repository")
       - type: select

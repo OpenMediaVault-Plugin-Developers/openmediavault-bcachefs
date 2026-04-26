@@ -11,6 +11,7 @@ Package: openmediavault-bcachefs
 Architecture: all
 Depends: openmediavault (>= 8),
          openmediavault-apt,
+         libdw1t64,
          ${misc:Depends}
 Description: OpenMediaVault plugin for Bcachefs
  Bcachefs is a next-generation Linux filesystem featuring copy-on-write,
