@@ -689,6 +689,36 @@ assert_rpc_fails "enableAutoUnlock — missing passphrase" "Bcachefs" \
 assert_rpc_fails "getFilesystem — unknown UUID" "Bcachefs" "getFilesystem" \
     '{"uuid":"00000000-0000-0000-0000-000000000000"}'
 
+assert_rpc_fails "createFilesystem — encrypted without passphrase" "Bcachefs" \
+    "createFilesystem" "$(python3 -c "
+import json
+print(json.dumps({
+    'label':       '',
+    'replicas':    1,
+    'compression': 'none',
+    'checksum':    'crc32c',
+    'nocow':       False,
+    'encrypted':   True,
+    'passphrase':  '',
+    'autounlock':  False,
+    'devicefiles': '${DEVICES[0]}',
+}))")"
+
+assert_rpc_fails "createFilesystem — string booleans, encrypted without passphrase" \
+    "Bcachefs" "createFilesystem" "$(python3 -c "
+import json
+print(json.dumps({
+    'label':       '',
+    'replicas':    '1',
+    'compression': 'none',
+    'checksum':    'crc32c',
+    'nocow':       'false',
+    'encrypted':   'true',
+    'passphrase':  '',
+    'autounlock':  'false',
+    'devicefiles': '${DEVICES[0]}',
+}))")"
+
 # ===========================================================================
 section "Summary"
 # ===========================================================================
