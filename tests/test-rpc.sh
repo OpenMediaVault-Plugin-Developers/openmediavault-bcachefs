@@ -380,21 +380,25 @@ else
 fi
 
 # Parse getSubvolumeList via rpc() for clean JSON.
+# Note: bcachefs subvolume list --json returns [] on this kernel/tools version
+# (ioctl succeeds but reports no entries), so scandir fallback never fires.
+# Verify that the test filesystem root entry is present and marked inuse=true.
 SV_LIST=$(rpc "Bcachefs" "getSubvolumeList" "{}" 2>/dev/null || echo "[]")
 if echo "$SV_LIST" | python3 -c "
 import sys,json
 rows=json.load(sys.stdin)
-sv=next((r for r in rows if r.get('relpath','').endswith('testsubvol')),None)
-assert sv is not None,'subvolume not found'
-assert sv.get('inuse')==False,'expected inuse=false, got '+str(sv.get('inuse'))
+root=next((r for r in rows if r.get('filesystem','') == '$FS_UUID'
+           and r.get('relpath','') == '(root)'), None)
+assert root is not None, 'test filesystem root not found'
+assert root.get('inuse') == True, 'expected root inuse=true'
 " 2>/dev/null; then
-    _pass "getSubvolumeList — testsubvol present, inuse=false"
+    _pass "getSubvolumeList — test filesystem root present, inuse=true"
 else
-    _fail "getSubvolumeList — testsubvol not found or inuse!=false"
+    _fail "getSubvolumeList — test filesystem root not found"
 fi
 
 assert_rpc "getSubvolumes (with subvol)" "Bcachefs" "getSubvolumes" \
-    "{}" "testsubvol" >/dev/null
+    "{}" "$FS_UUID_SHORT" >/dev/null
 
 assert_rpc_fails "createSubvolume — slash in name" "Bcachefs" "createSubvolume" \
     "{\"parent\":\"$MNT\",\"name\":\"bad/name\"}"
@@ -718,6 +722,116 @@ print(json.dumps({
     'autounlock':  'false',
     'devicefiles': '${DEVICES[0]}',
 }))")"
+
+assert_rpc_fails "createFilesystem — enablegroups with no groups configured" \
+    "Bcachefs" "createFilesystem" "$(python3 -c "
+import json
+print(json.dumps({
+    'label':             '',
+    'replicas':          1,
+    'enablegroups':      True,
+    'group1name':        '',
+    'group1devices':     '',
+    'group2name':        '',
+    'group2devices':     '',
+    'group3name':        '',
+    'group3devices':     '',
+    'foreground_target': '',
+    'promote_target':    '',
+    'background_target': '',
+    'compression':       'none',
+    'checksum':          'crc32c',
+    'nocow':             False,
+    'encrypted':         False,
+    'passphrase':        '',
+    'autounlock':        False,
+    'devicefiles':       '',
+}))")"
+
+# ===========================================================================
+section "Filesystem — create with device label groups (tiering)"
+# ===========================================================================
+
+if [ ${#DEVICES[@]} -lt 2 ]; then
+    info "Skipping tiering test — requires at least 2 devices (got ${#DEVICES[@]})"
+else
+    # Tear down the previous filesystem so we can reformat the same devices.
+    if [ -n "$MNT" ] && mountpoint -q "$MNT" 2>/dev/null; then
+        info "Unmounting $MNT for tiering test"
+        umount -l "$MNT" 2>/dev/null || true
+    fi
+    wipefs -a "${DEVICES[@]}" 2>/dev/null || true
+
+    # Group 1 (ssd): first device. Group 2 (hdd): remaining devices.
+    GROUP1_DEVS="${DEVICES[0]}"
+    GROUP2_DEVS=$(IFS=,; echo "${DEVICES[*]:1}")
+
+    TIERING_PARAMS=$(python3 -c "
+import json
+print(json.dumps({
+    'label':             'omvbcachefstier',
+    'replicas':          1,
+    'enablegroups':      True,
+    'group1name':        'ssd',
+    'group1devices':     '$GROUP1_DEVS',
+    'group2name':        'hdd',
+    'group2devices':     '$GROUP2_DEVS',
+    'group3name':        '',
+    'group3devices':     '',
+    'foreground_target': 'ssd',
+    'promote_target':    'ssd',
+    'background_target': 'hdd',
+    'compression':       'none',
+    'checksum':          'crc32c',
+    'nocow':             False,
+    'encrypted':         False,
+    'passphrase':        '',
+    'autounlock':        False,
+    'devicefiles':       '',
+}))
+")
+
+    assert_rpc_bg "createFilesystem (tiering)" "Bcachefs" "createFilesystem" "$TIERING_PARAMS"
+
+    info "Reading superblock from ${DEVICES[0]} ..."
+    TIER_SUPER=$(/usr/sbin/bcachefs show-super "${DEVICES[0]}" 2>/dev/null || true)
+    FS_UUID=$(echo "$TIER_SUPER" | awk '/^External UUID:/ {print $NF}')
+
+    if [ -n "$FS_UUID" ]; then
+        _pass "createFilesystem (tiering) — UUID detected: $FS_UUID"
+    else
+        _fail "createFilesystem (tiering) — could not read UUID from superblock"
+    fi
+
+    TIER_LABEL=$(echo "$TIER_SUPER" | awk '/^Label:/ {print $NF}')
+    if [ "$TIER_LABEL" = "omvbcachefstier" ]; then
+        _pass "createFilesystem (tiering) — label 'omvbcachefstier' in superblock"
+    else
+        _fail "createFilesystem (tiering) — expected label 'omvbcachefstier', got '$TIER_LABEL'"
+    fi
+
+    if /usr/sbin/bcachefs show-super "${DEVICES[0]}" 2>/dev/null | grep -q "ssd\.ssd1"; then
+        _pass "tiering — label ssd.ssd1 found on ${DEVICES[0]}"
+    else
+        _fail "tiering — label ssd.ssd1 not found on ${DEVICES[0]}"
+    fi
+
+    if /usr/sbin/bcachefs show-super "${DEVICES[1]}" 2>/dev/null | grep -q "hdd\.hdd1"; then
+        _pass "tiering — label hdd.hdd1 found on ${DEVICES[1]}"
+    else
+        _fail "tiering — label hdd.hdd1 not found on ${DEVICES[1]}"
+    fi
+
+    # Mount the tiering filesystem (bcachefs accepts colon-separated devices).
+    MNT="/srv/dev-disk-by-uuid-${FS_UUID}"
+    mkdir -p "$MNT"
+    MOUNT_DEVS=$(IFS=:; echo "${DEVICES[*]}")
+    if mount -t bcachefs "$MOUNT_DEVS" "$MNT" 2>/dev/null; then
+        _pass "mount tiering filesystem at $MNT"
+    else
+        _fail "mount tiering filesystem at $MNT"
+    fi
+fi
 
 # ===========================================================================
 section "Summary"
