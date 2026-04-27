@@ -723,6 +723,31 @@ print(json.dumps({
     'devicefiles': '${DEVICES[0]}',
 }))")"
 
+assert_rpc_fails "createFilesystem — device in multiple groups" \
+    "Bcachefs" "createFilesystem" "$(python3 -c "
+import json
+print(json.dumps({
+    'label':             '',
+    'replicas':          1,
+    'enablegroups':      True,
+    'group1name':        'ssd',
+    'group1devices':     '${DEVICES[0]}',
+    'group2name':        'hdd',
+    'group2devices':     '${DEVICES[0]}',
+    'group3name':        '',
+    'group3devices':     '',
+    'foreground_target': '',
+    'promote_target':    '',
+    'background_target': '',
+    'compression':       'none',
+    'checksum':          'crc32c',
+    'nocow':             False,
+    'encrypted':         False,
+    'passphrase':        '',
+    'autounlock':        False,
+    'devicefiles':       '',
+}))")"
+
 assert_rpc_fails "createFilesystem — enablegroups with no groups configured" \
     "Bcachefs" "createFilesystem" "$(python3 -c "
 import json

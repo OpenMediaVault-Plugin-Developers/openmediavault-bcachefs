@@ -134,11 +134,19 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 ['name' => $params['group2name'] ?? '', 'devices' => $params['group2devices'] ?? ''],
                 ['name' => $params['group3name'] ?? '', 'devices' => $params['group3devices'] ?? ''],
             ];
+            $seen = []; // device => group name, for duplicate detection
             foreach ($groupDefs as $g) {
                 $gName = trim($g['name']);
                 if ($gName === '' || trim($g['devices']) === '') continue;
                 $n = 1;
                 foreach (array_filter(array_map('trim', explode(',', $g['devices']))) as $dev) {
+                    if (isset($seen[$dev])) {
+                        throw new \OMV\Exception(
+                            "Device '%s' is assigned to both group '%s' and group '%s'. " .
+                            "Each device may only belong to one group.",
+                            $dev, $seen[$dev], $gName);
+                    }
+                    $seen[$dev]           = $gName;
                     $deviceFiles[]        = $dev;
                     $deviceLabels[$dev]   = sprintf('%s.%s%d', $gName, $gName, $n++);
                 }
