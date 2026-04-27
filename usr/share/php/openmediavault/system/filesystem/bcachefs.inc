@@ -60,13 +60,17 @@ class Bcachefs extends Filesystem {
 		}
 
 		// Parse device lines from output like:
-		//   /dev/sdb (rw): ...
-		//   /dev/sdc (rw): ...
+		//   (no label) (device 0):  dm-18   rw   ...
+		//   ssd.ssd1   (device 1):  sda     rw   ...
+		// bcachefs reports only the short device name (kernel name), not the
+		// full path.  Prepend /dev/ and resolve to the canonical path so the
+		// result matches what StorageDevice::getCanonicalDeviceFile() returns.
 		$this->deviceFiles = [];
-		$regex = "/^\s*(\/dev\/\S+)\s+\(/";
+		$regex = '/\(device\s+\d+\):\s+(\S+)/';
 		foreach ($output as $line) {
 			if (preg_match($regex, $line, $matches)) {
-				$this->deviceFiles[] = $matches[1];
+				$fullPath  = '/dev/' . $matches[1];
+				$this->deviceFiles[] = realpath($fullPath) ?: $fullPath;
 			}
 		}
 		$this->numTotalDeviceFiles = count($this->deviceFiles);
