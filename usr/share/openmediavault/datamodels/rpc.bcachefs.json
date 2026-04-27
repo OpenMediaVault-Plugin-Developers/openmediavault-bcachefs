@@ -80,6 +80,18 @@
           "maximum": 10,
           "required": false
         },
+        "foreground_target": {
+          "type": "string",
+          "required": false
+        },
+        "promote_target": {
+          "type": "string",
+          "required": false
+        },
+        "background_target": {
+          "type": "string",
+          "required": false
+        },
         "compression": {
           "type": "string",
           "enum": ["none", "lz4", "gzip", "zstd"],
@@ -106,9 +118,37 @@
           "type": "boolean",
           "required": false
         },
+        "enablegroups": {
+          "type": "boolean",
+          "required": false
+        },
+        "group1name": {
+          "type": "string",
+          "required": false
+        },
+        "group1devices": {
+          "type": "string",
+          "required": false
+        },
+        "group2name": {
+          "type": "string",
+          "required": false
+        },
+        "group2devices": {
+          "type": "string",
+          "required": false
+        },
+        "group3name": {
+          "type": "string",
+          "required": false
+        },
+        "group3devices": {
+          "type": "string",
+          "required": false
+        },
         "devicefiles": {
           "type": "string",
-          "required": true
+          "required": false
         }
       }
     }

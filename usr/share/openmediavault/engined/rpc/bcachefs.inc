@@ -108,10 +108,11 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
     public function createFilesystem($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
-        $params['nocow']      = filter_var($params['nocow']      ?? false, FILTER_VALIDATE_BOOLEAN);
-        $params['encrypted']  = filter_var($params['encrypted']  ?? false, FILTER_VALIDATE_BOOLEAN);
-        $params['autounlock'] = filter_var($params['autounlock'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $params['replicas']   = intval($params['replicas'] ?? 1);
+        $params['nocow']        = filter_var($params['nocow']        ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['encrypted']    = filter_var($params['encrypted']    ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['autounlock']   = filter_var($params['autounlock']   ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['enablegroups'] = filter_var($params['enablegroups'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['replicas']     = intval($params['replicas'] ?? 1);
         $this->validateMethodParams($params, "rpc.bcachefs.createfilesystem");
 
         $nocow = $params['nocow'];
@@ -120,6 +121,43 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         if ($encrypted && empty($params['passphrase'])) {
             throw new \OMV\Exception(
                 "A passphrase is required when encryption is enabled.");
+        }
+
+        // Build the ordered device list and per-device label map before
+        // spawning the background process so we can validate early.
+        $deviceFiles  = [];
+        $deviceLabels = []; // device path => label string
+
+        if ($params['enablegroups']) {
+            $groupDefs = [
+                ['name' => $params['group1name'] ?? '', 'devices' => $params['group1devices'] ?? ''],
+                ['name' => $params['group2name'] ?? '', 'devices' => $params['group2devices'] ?? ''],
+                ['name' => $params['group3name'] ?? '', 'devices' => $params['group3devices'] ?? ''],
+            ];
+            foreach ($groupDefs as $g) {
+                $gName = trim($g['name']);
+                if ($gName === '' || trim($g['devices']) === '') continue;
+                $n = 1;
+                foreach (array_filter(array_map('trim', explode(',', $g['devices']))) as $dev) {
+                    $deviceFiles[]        = $dev;
+                    $deviceLabels[$dev]   = sprintf('%s.%s%d', $gName, $gName, $n++);
+                }
+            }
+            if (empty($deviceFiles)) {
+                throw new \OMV\Exception(
+                    "At least one device group with a name and devices must be configured.");
+            }
+        } else {
+            $deviceFiles = array_filter(array_map('trim', explode(',', $params['devicefiles'] ?? '')));
+            if (empty($deviceFiles)) {
+                throw new \OMV\Exception("At least one device must be selected.");
+            }
+        }
+
+        if (count($deviceFiles) < $params['replicas']) {
+            throw new \OMV\Exception(
+                "The number of devices (%d) must be at least equal to the number of replicas (%d).",
+                count($deviceFiles), $params['replicas']);
         }
 
         // Pre-generate a UUID so we can save the key file after format
@@ -131,8 +169,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         }
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename)
-          use ($params, $nocow, $encrypted, $autounlock, $fsUuid) {
-            $deviceFiles = explode(",", $params['devicefiles']);
+          use ($params, $nocow, $encrypted, $autounlock, $fsUuid, $deviceFiles, $deviceLabels) {
 
             foreach ($deviceFiles as $deviceFile) {
                 $sd = \OMV\System\Storage\StorageDevice::assertGetStorageDevice(
@@ -152,6 +189,15 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             }
             if (!empty($params['replicas'])) {
                 $cmdArgs[] = sprintf("--replicas=%d", intval($params['replicas']));
+            }
+            if (!empty($params['foreground_target'])) {
+                $cmdArgs[] = sprintf("--foreground_target=%s", $params['foreground_target']);
+            }
+            if (!empty($params['promote_target'])) {
+                $cmdArgs[] = sprintf("--promote_target=%s", $params['promote_target']);
+            }
+            if (!empty($params['background_target'])) {
+                $cmdArgs[] = sprintf("--background_target=%s", $params['background_target']);
             }
             if (!empty($params['compression']) && $params['compression'] !== "none") {
                 $cmdArgs[] = sprintf("--compression=%s", $params['compression']);
@@ -177,7 +223,11 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 $cmdArgs[] = sprintf("--passphrase_file=%s", $passphraseFile);
             }
 
+            // Each --label flag must immediately precede the device it applies to.
             foreach ($deviceFiles as $deviceFile) {
+                if (isset($deviceLabels[$deviceFile])) {
+                    $cmdArgs[] = sprintf("--label=%s", $deviceLabels[$deviceFile]);
+                }
                 $cmdArgs[] = escapeshellarg($deviceFile);
             }
 

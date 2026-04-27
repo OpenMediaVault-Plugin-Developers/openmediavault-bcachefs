@@ -41,17 +41,32 @@ data:
             - dir: asc
               prop: devicefile
         validators:
-          required: true
+          requiredIf:
+            operator: falsy
+            arg0:
+              prop: enablegroups
           custom:
             - constraint:
-                operator: '>='
+                operator: or
                 arg0:
-                  operator: length
+                  operator: truthy
                   arg0:
-                    prop: devicefiles
+                    prop: enablegroups
                 arg1:
-                  prop: replicas
+                  operator: '>='
+                  arg0:
+                    operator: length
+                    arg0:
+                      prop: devicefiles
+                  arg1:
+                    prop: replicas
               errorData: _("The number of devices must be at least equal to the number of replicas.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: truthy
+              arg0:
+                prop: enablegroups
       - type: numberInput
         name: replicas
         label: _("Replicas")
@@ -60,6 +75,145 @@ data:
         max: 10
         step: 1
         hint: _("Number of copies to store for both data and metadata. Usable space ≈ total raw ÷ replicas — df shows raw capacity")
+      - type: checkbox
+        name: enablegroups
+        label: _("Enable device label groups")
+        value: false
+        hint: _("Assign devices to named label groups to enable tiering between device types (e.g. SSD and HDD). Hides the Devices field above — use the group selectors instead.")
+      - type: textInput
+        name: group1name
+        label: _("Group 1 Name")
+        value: ""
+        placeholder: "ssd"
+        hint: _("Label group name (e.g. 'ssd'). Devices will be labeled group.group1, group.group2, etc.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: select
+        name: group1devices
+        label: _("Group 1 Devices")
+        placeholder: _("Select devices ...")
+        multiple: true
+        valueField: devicefile
+        textField: description
+        store:
+          proxy:
+            service: FileSystemMgmt
+            get:
+              method: getCandidatesBg
+              task: true
+          sorters:
+            - dir: asc
+              prop: devicefile
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
+        name: group2name
+        label: _("Group 2 Name")
+        value: ""
+        placeholder: "hdd"
+        hint: _("Label group name (e.g. 'hdd').")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: select
+        name: group2devices
+        label: _("Group 2 Devices")
+        placeholder: _("Select devices ...")
+        multiple: true
+        valueField: devicefile
+        textField: description
+        store:
+          proxy:
+            service: FileSystemMgmt
+            get:
+              method: getCandidatesBg
+              task: true
+          sorters:
+            - dir: asc
+              prop: devicefile
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
+        name: group3name
+        label: _("Group 3 Name")
+        value: ""
+        hint: _("Optional third group. Leave empty if not needed.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: select
+        name: group3devices
+        label: _("Group 3 Devices")
+        placeholder: _("Select devices ...")
+        multiple: true
+        valueField: devicefile
+        textField: description
+        store:
+          proxy:
+            service: FileSystemMgmt
+            get:
+              method: getCandidatesBg
+              task: true
+          sorters:
+            - dir: asc
+              prop: devicefile
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
+        name: foreground_target
+        label: _("Foreground Target")
+        value: ""
+        hint: _("Label group where new data is written first (e.g. 'ssd'). Leave empty to use bcachefs defaults.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
+        name: promote_target
+        label: _("Promote Target")
+        value: ""
+        hint: _("Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave empty to disable promotion.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
+        name: background_target
+        label: _("Background Target")
+        value: ""
+        hint: _("Label group where data is moved to in the background (e.g. 'hdd'). Leave empty to use bcachefs defaults.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
       - type: divider
         title: _("Data Integrity")
       - type: select
@@ -180,6 +334,16 @@ data:
                 params:
                   label: '{{ label }}'
                   replicas: '{{ replicas }}'
+                  enablegroups: '{{ enablegroups }}'
+                  group1name: '{{ group1name }}'
+                  group1devices: '{{ group1devices }}'
+                  group2name: '{{ group2name }}'
+                  group2devices: '{{ group2devices }}'
+                  group3name: '{{ group3name }}'
+                  group3devices: '{{ group3devices }}'
+                  foreground_target: '{{ foreground_target }}'
+                  promote_target: '{{ promote_target }}'
+                  background_target: '{{ background_target }}'
                   compression: '{{ compression }}'
                   checksum: '{{ checksum }}'
                   nocow: '{{ nocow }}'
