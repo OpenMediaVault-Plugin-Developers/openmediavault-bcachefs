@@ -16,7 +16,7 @@ configure_bcachefs_snapshot_cron:
         jobs: {{ snapshot_jobs | json }}
     - user: root
     - group: root
-    - mode: 644
+    - mode: '0644'
 
 configure_bcachefs_scrub_cron:
   file.managed:
@@ -28,4 +28,4 @@ configure_bcachefs_scrub_cron:
         jobs: {{ scrub_jobs | json }}
     - user: root
     - group: root
-    - mode: 644
+    - mode: '0644'

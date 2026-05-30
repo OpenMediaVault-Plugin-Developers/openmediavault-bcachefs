@@ -33,6 +33,6 @@ bcachefs_modules_load_conf:
     - contents: "bcachefs"
     - user: root
     - group: root
-    - mode: "0644"
+    - mode: '0644'
 
 {% endif %}
