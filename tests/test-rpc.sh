@@ -221,6 +221,13 @@ for j in json.load(sys.stdin).get('data',[]):
         wipefs -a "$dev" 2>/dev/null || true
     done
     info "Done."
+
+    # Deploy pending config changes so the OMV web UI "apply changes" banner
+    # does not linger after this test run. Runs detached/async so the script
+    # returns promptly; --append-dirty clears the dirty-module markers (the
+    # banner) once the deploy completes.
+    info "Deploying pending config changes asynchronously (clears web UI banner)"
+    nohup omv-salt deploy run --quiet --append-dirty >/dev/null 2>&1 &
 }
 trap cleanup EXIT
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"POT-Creation-Date: 2026-05-31 00:55+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Language-Team: Javanese (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/jv/)\n"
 "MIME-Version: 1.0\n"
@@ -28,6 +28,12 @@ msgstr ""
 msgid "April"
 msgstr ""
 
+msgid ""
+"Assign devices to named label groups to enable tiering between device types "
+"(e.g. SSD and HDD). Hides the Devices field above — use the group selectors "
+"instead."
+msgstr ""
+
 msgid "At reboot"
 msgstr ""
 
@@ -38,6 +44,9 @@ msgid "Auto-unlock"
 msgstr ""
 
 msgid "Auto-unlock at boot"
+msgstr ""
+
+msgid "Background Target"
 msgstr ""
 
 msgid "Bcachefs"
@@ -132,6 +141,9 @@ msgstr ""
 msgid "Enable auto-unlock"
 msgstr ""
 
+msgid "Enable device label groups"
+msgstr ""
+
 msgid ""
 "Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
 "NoCOW is enabled."
@@ -164,10 +176,31 @@ msgstr ""
 msgid "Filesystems"
 msgstr ""
 
+msgid "Foreground Target"
+msgstr ""
+
 msgid "Friday"
 msgstr ""
 
 msgid "General"
+msgstr ""
+
+msgid "Group 1 Devices"
+msgstr ""
+
+msgid "Group 1 Name"
+msgstr ""
+
+msgid "Group 2 Devices"
+msgstr ""
+
+msgid "Group 2 Name"
+msgstr ""
+
+msgid "Group 3 Devices"
+msgstr ""
+
+msgid "Group 3 Name"
 msgstr ""
 
 msgid "Hour"
@@ -202,6 +235,29 @@ msgstr ""
 msgid "Label"
 msgstr ""
 
+msgid "Label group name (e.g. 'hdd')."
+msgstr ""
+
+msgid ""
+"Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
+"group.group2, etc."
+msgstr ""
+
+msgid ""
+"Label group where data is moved to in the background (e.g. 'hdd'). Leave "
+"empty to use bcachefs defaults."
+msgstr ""
+
+msgid ""
+"Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave "
+"empty to disable promotion."
+msgstr ""
+
+msgid ""
+"Label group where new data is written first (e.g. 'ssd'). Leave empty to use"
+" bcachefs defaults."
+msgstr ""
+
 msgid "March"
 msgstr ""
 
@@ -232,7 +288,9 @@ msgstr ""
 msgid "November"
 msgstr ""
 
-msgid "Number of copies to store for both data and metadata."
+msgid ""
+"Number of copies to store for both data and metadata. Usable space ≈ total "
+"raw ÷ replicas — df shows raw capacity"
 msgstr ""
 
 msgid "October"
@@ -245,6 +303,9 @@ msgid "Only send an email if the job exits with an error."
 msgstr ""
 
 msgid "Optional label to identify this filesystem."
+msgstr ""
+
+msgid "Optional third group. Leave empty if not needed."
 msgstr ""
 
 msgid "Package suite"
@@ -260,6 +321,9 @@ msgid "Path"
 msgstr ""
 
 msgid "Prefix"
+msgstr ""
+
+msgid "Promote Target"
 msgstr ""
 
 msgid "Read-only"
@@ -411,6 +475,12 @@ msgid ""
 msgstr ""
 
 msgid "Yearly"
+msgstr ""
+
+msgid ""
+"bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ "
+"kernelVersion }}) is not supported — the DKMS module will not be installed. "
+"Upgrade your kernel and reboot to enable bcachefs."
 msgstr ""
 
 msgid "bcachefs-tools-release — stable builds (best for production use)"

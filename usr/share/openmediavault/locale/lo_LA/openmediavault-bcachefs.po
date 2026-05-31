@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the openmediavault-bcachefs package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# BoneNI, 2026
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"POT-Creation-Date: 2026-05-31 00:55+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
+"Last-Translator: BoneNI, 2026\n"
 "Language-Team: Lao (Laos) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/lo_LA/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,160 +25,205 @@ msgid ""
 "'Snapshots' keeps the N most recent; time units delete snapshots older than "
 "N days/weeks/months/years."
 msgstr ""
+"'ສະນັບຊອດ' ຈະເກັບຮັກສາ N ອັນຫຼ້າສຸດ; ຫົວໜ່ວຍເວລາຈະລຶບສະນັບຊອດທີ່ເກົ່າກວ່າ N "
+"ມື້/ອາທິດ/ເດືອນ/ປີ."
 
 msgid "Advanced"
-msgstr ""
+msgstr "ຂັ້ນສູງ"
 
 msgid "April"
+msgstr "ເມສາ"
+
+msgid ""
+"Assign devices to named label groups to enable tiering between device types "
+"(e.g. SSD and HDD). Hides the Devices field above — use the group selectors "
+"instead."
 msgstr ""
 
 msgid "At reboot"
-msgstr ""
+msgstr "ເມື່ອເລີ່ມລະບົບໃໝ່"
 
 msgid "August"
-msgstr ""
+msgstr "ສິງຫາ"
 
 msgid "Auto-unlock"
-msgstr ""
+msgstr "ປົດລັອກອັດຕະໂນມັດ"
 
 msgid "Auto-unlock at boot"
+msgstr "ປົດລັອກອັດຕະໂນມັດຕອນບູດເຄື່ອງ"
+
+msgid "Background Target"
 msgstr ""
 
 msgid "Bcachefs"
-msgstr ""
+msgstr "Bcachefs"
 
 msgid "CRC32c (default)"
-msgstr ""
+msgstr "CRC32c (ຄ່າເລີ່ມຕົ້ນ)"
 
 msgid "Certain date"
-msgstr ""
+msgstr "ວັນທີທີ່ກຳນົດ"
 
 msgid ""
 "Changing the suite will reinstall bcachefs-tools from the selected "
 "repository on the next Apply."
 msgstr ""
+"ການປ່ຽນຊຸດຊອບແວຈະເຮັດໃຫ້ມີການຕິດຕັ້ງ bcachefs-tools "
+"ໃໝ່ຈາກຄັງເກັບທີ່ເລືອກໃນຕອນກົດນຳໃຊ້ຄັ້ງຕໍ່ໄປ."
 
 msgid "Checksum"
-msgstr ""
+msgstr "ລະຫັດກວດສອບ"
 
 msgid ""
 "Checksum algorithm for data and metadata integrity verification. Disabled "
 "automatically when NoCOW is enabled."
 msgstr ""
+"ສູດຄຳນວນລະຫັດກວດສອບເພື່ອຢືນຢັນຄວາມຖືກຕ້ອງຂອງຂໍ້ມູນ ແລະ ເມຕາເດຕາ. "
+"ຈະຖືກປິດໃຊ້ງານອັດຕະໂນມັດເມື່ອເປີດໃຊ້ NoCOW."
 
 msgid "Comment"
-msgstr ""
+msgstr "ຄຳອະທິບາຍ"
 
 msgid "Compression"
-msgstr ""
+msgstr "ການບີບອັດ"
 
 msgid ""
 "Compression algorithm applied to new data writes. Disabled automatically "
 "when NoCOW is enabled."
 msgstr ""
+"ສູດຄຳນວນການບີບອັດທີ່ຈະນຳໃຊ້ກັບການຂຽນຂໍ້ມູນໃໝ່. "
+"ຈະຖືກປິດໃຊ້ງານອັດຕະໂນມັດເມື່ອເປີດໃຊ້ NoCOW."
 
 msgid "Confirm Passphrase"
-msgstr ""
+msgstr "ຢືນຢັນລະຫັດຜ່ານ"
 
 msgid "Create"
-msgstr ""
+msgstr "ສ້າງ"
 
 msgid "Create file system"
-msgstr ""
+msgstr "ສ້າງລະບົບໄຟລ໌"
 
 msgid "Create the snapshot as read-only."
-msgstr ""
+msgstr "ສ້າງສະນັບຊອດແບບອ່ານໄດ້ຢ່າງດຽວ."
 
 msgid "Created scrub job."
-msgstr ""
+msgstr "ສ້າງວຽກກວດສອບຂໍ້ມູນ (scrub) ແລ້ວ."
 
 msgid "Created snapshot job."
-msgstr ""
+msgstr "ສ້າງວຽກສະນັບຊອດແລ້ວ."
 
 msgid "Created subvolume."
-msgstr ""
+msgstr "ສ້າງຊັບວໍລຸມ (subvolume) ແລ້ວ."
 
 msgid "Daily"
-msgstr ""
+msgstr "ລາຍວັນ"
 
 msgid "Data Integrity"
-msgstr ""
+msgstr "ຄວາມຖືກຕ້ອງສົມບູນຂອງຂໍ້ມູນ"
 
 msgid "Day of month"
-msgstr ""
+msgstr "ມື້ຂອງເດືອນ"
 
 msgid "Day of week"
-msgstr ""
+msgstr "ມື້ຂອງອາທິດ"
 
 msgid "December"
-msgstr ""
+msgstr "ທັນວາ"
 
 msgid "Devices"
-msgstr ""
+msgstr "ອຸປະກອນ"
 
 msgid "Disable COW"
-msgstr ""
+msgstr "ປິດການໃຊ້ງານ COW"
 
 msgid "Disable auto-unlock"
-msgstr ""
+msgstr "ປິດການປົດລັອກອັດຕະໂນມັດ"
 
 msgid ""
 "Do you really want to disable auto-unlock? The key file will be deleted and "
 "the filesystem will require a passphrase at next boot."
 msgstr ""
+"ທ່ານຕ້ອງການປິດການປົດລັອກອັດຕະໂນມັດແທ້ຫຼືບໍ່? ໄຟລ໌ກຸນແຈຈະຖືກລຶບ ແລະ "
+"ລະບົບໄຟລ໌ຈະຕ້ອງມີລະຫັດຜ່ານໃນການບູດເຄື່ອງຄັ້ງຕໍ່ໄປ."
 
 msgid "Edit"
-msgstr ""
+msgstr "ແກ້ໄຂ"
 
 msgid "Enable Auto-unlock"
-msgstr ""
+msgstr "ເປີດການປົດລັອກອັດຕະໂນມັດ"
 
 msgid "Enable auto-unlock"
+msgstr "ເປີດການປົດລັອກອັດຕະໂນມັດ"
+
+msgid "Enable device label groups"
 msgstr ""
 
 msgid ""
 "Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
 "NoCOW is enabled."
 msgstr ""
+"ເປີດການເຂົ້າລະຫັດທັງໝົດຂອງລະບົບໄຟລ໌ (chacha20/poly1305). "
+"ບໍ່ສາມາດໃຊ້ໄດ້ເມື່ອເປີດໃຊ້ NoCOW."
 
 msgid "Enabled"
-msgstr ""
+msgstr "ເປີດໃຊ້ງານ"
 
 msgid "Encrypted"
-msgstr ""
+msgstr "ເຂົ້າລະຫັດແລ້ວ"
 
 msgid "Encryption"
-msgstr ""
+msgstr "ການເຂົ້າລະຫັດ"
 
 msgid "Every N day of month"
-msgstr ""
+msgstr "ທຸກໆ N ມື້ຂອງເດືອນ"
 
 msgid "Every N hour"
-msgstr ""
+msgstr "ທຸກໆ N ຊົ່ວໂມງ"
 
 msgid "Every N minute"
-msgstr ""
+msgstr "ທຸກໆ N ນາທີ"
 
 msgid "February"
-msgstr ""
+msgstr "ກຸມພາ"
 
 msgid "Filesystem"
-msgstr ""
+msgstr "ລະບົບໄຟລ໌"
 
 msgid "Filesystems"
+msgstr "ລະບົບໄຟລ໌"
+
+msgid "Foreground Target"
 msgstr ""
 
 msgid "Friday"
-msgstr ""
+msgstr "ວັນສຸກ"
 
 msgid "General"
+msgstr "ທົ່ວໄປ"
+
+msgid "Group 1 Devices"
+msgstr ""
+
+msgid "Group 1 Name"
+msgstr ""
+
+msgid "Group 2 Devices"
+msgstr ""
+
+msgid "Group 2 Name"
+msgstr ""
+
+msgid "Group 3 Devices"
+msgstr ""
+
+msgid "Group 3 Name"
 msgstr ""
 
 msgid "Hour"
-msgstr ""
+msgstr "ຊົ່ວໂມງ"
 
 msgid "Hourly"
-msgstr ""
+msgstr "ທຸກຊົ່ວໂມງ"
 
 msgid ""
 "If a device is not listed here, it is usually because the device already "
@@ -183,255 +232,310 @@ msgid ""
 "please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
 "supported."
 msgstr ""
+"ຖ້າອຸປະກອນບໍ່ມີລາຍຊື່ຢູ່ບ່ອນນີ້, ໂດຍປົກກະຕິແມ່ນຍ້ອນວ່າອຸປະກອນມີລະບົບໄຟລ໌ ຫຼື"
+" ພາທິຊັນຢູ່ແລ້ວ. ຖ້າມີລະບົບໄຟລ໌ຢູ່ກ່ອນ ທ່ານສາມາດເຊື່ອມຕໍ່ (mount) ໄດ້ <a "
+"href='#/storage/filesystems/mount'>ຢູ່ບ່ອນນີ້</a>. ຫາກມີພາທິຊັນ, ກະລຸນາ <a "
+"href='#/storage/disks'>ລຶບຂໍ້ມູນ (wipe)</a> ອຸປະກອນກ່ອນ "
+"ເພາະລະບົບບໍ່ຮອງຮັບການໃຊ້ງານເທິງພາທິຊັນ."
 
 msgid "In Use"
-msgstr ""
+msgstr "ກຳລັງໃຊ້ງານ"
 
 msgid "January"
-msgstr ""
+msgstr "ມັງກອນ"
 
 msgid "July"
-msgstr ""
+msgstr "ກໍລະກົດ"
 
 msgid "June"
-msgstr ""
+msgstr "ມິຖຸນາ"
 
 msgid "Keep"
-msgstr ""
+msgstr "ເກັບຮັກສາ"
 
 msgid "Label"
+msgstr "ປ້າຍຊື່"
+
+msgid "Label group name (e.g. 'hdd')."
+msgstr ""
+
+msgid ""
+"Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
+"group.group2, etc."
+msgstr ""
+
+msgid ""
+"Label group where data is moved to in the background (e.g. 'hdd'). Leave "
+"empty to use bcachefs defaults."
+msgstr ""
+
+msgid ""
+"Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave "
+"empty to disable promotion."
+msgstr ""
+
+msgid ""
+"Label group where new data is written first (e.g. 'ssd'). Leave empty to use"
+" bcachefs defaults."
 msgstr ""
 
 msgid "March"
-msgstr ""
+msgstr "ມີນາ"
 
 msgid "May"
-msgstr ""
+msgstr "ພຶດສະພາ"
 
 msgid "Minute"
-msgstr ""
+msgstr "ນາທີ"
 
 msgid "Monday"
-msgstr ""
+msgstr "ວັນຈັນ"
 
 msgid "Month"
-msgstr ""
+msgstr "ເດືອນ"
 
 msgid "Monthly"
-msgstr ""
+msgstr "ລາຍເດືອນ"
 
 msgid "Mountpoint"
-msgstr ""
+msgstr "ຈຸດເຊື່ອມຕໍ່"
 
 msgid "Name"
-msgstr ""
+msgstr "ຊື່"
 
 msgid "None"
-msgstr ""
+msgstr "ບໍ່ມີ"
 
 msgid "November"
-msgstr ""
+msgstr "ພະຈິກ"
 
-msgid "Number of copies to store for both data and metadata."
+msgid ""
+"Number of copies to store for both data and metadata. Usable space ≈ total "
+"raw ÷ replicas — df shows raw capacity"
 msgstr ""
 
 msgid "October"
-msgstr ""
+msgstr "ຕຸລາ"
 
 msgid "Only alphanumeric characters, hyphens, and underscores are allowed."
 msgstr ""
+"ອະນຸຍາດໃຫ້ໃຊ້ສະເພາະຕົວອັກສອນ, ຕົວເລກ, ຂີດຕໍ່ (-) ແລະ ຂີດກ້ອງ (_) ເທົ່ານັ້ນ."
 
 msgid "Only send an email if the job exits with an error."
-msgstr ""
+msgstr "ສົ່ງອີເມລ໌ສະເພາະເມື່ອວຽກເກີດຂໍ້ຜິດພາດເທົ່ານັ້ນ."
 
 msgid "Optional label to identify this filesystem."
+msgstr "ປ້າຍຊື່ (ບໍ່ບັງຄັບ) ເພື່ອລະບຸລະບົບໄຟລ໌ນີ້."
+
+msgid "Optional third group. Leave empty if not needed."
 msgstr ""
 
 msgid "Package suite"
-msgstr ""
+msgstr "ຊຸດແພັກເກດ"
 
 msgid "Parent"
-msgstr ""
+msgstr "ຕົ້ນທາງ"
 
 msgid "Passphrase"
-msgstr ""
+msgstr "ລະຫັດຜ່ານ"
 
 msgid "Path"
-msgstr ""
+msgstr "ເສັ້ນທາງ"
 
 msgid "Prefix"
+msgstr "ຄຳນຳໜ້າ"
+
+msgid "Promote Target"
 msgstr ""
 
 msgid "Read-only"
-msgstr ""
+msgstr "ອ່ານຢ່າງດຽວ"
 
 msgid "Read-only snapshot"
-msgstr ""
+msgstr "ສະນັບຊອດແບບອ່ານຢ່າງດຽວ"
 
 msgid "Replicas"
-msgstr ""
+msgstr "ຊຸດສຳເນົາ"
 
 msgid "Repository"
-msgstr ""
+msgstr "ຄັງເກັບຊອບແວ"
 
 msgid "Run"
-msgstr ""
+msgstr "ເຮັດວຽກ"
 
 msgid "Run now"
-msgstr ""
+msgstr "ເຮັດວຽກຕອນນີ້"
 
 msgid "Run snapshot job"
-msgstr ""
+msgstr "ເລີ່ມວຽກສະນັບຊອດ"
 
 msgid "Saturday"
-msgstr ""
+msgstr "ວັນເສົາ"
 
 msgid ""
 "Save the passphrase to a root-only key file so the filesystem unlocks "
 "automatically at boot. The key is stored in /etc/bcachefs/keys/."
 msgstr ""
+"ບັນທຶກລະຫັດຜ່ານໄວ້ໃນໄຟລ໌ກຸນແຈທີ່ອ່ານໄດ້ສະເພາະ root "
+"ເພື່ອໃຫ້ລະບົບໄຟລ໌ປົດລັອກອັດຕະໂນມັດຕອນບູດ. ກຸນແຈຈະຖືກເກັບໄວ້ໃນ "
+"/etc/bcachefs/keys/."
 
 msgid "Schedule"
-msgstr ""
+msgstr "ຕາຕະລາງ"
 
 msgid "Scheduling"
-msgstr ""
+msgstr "ການຕັ້ງຕາຕະລາງ"
 
 msgid "Scrub Jobs"
-msgstr ""
+msgstr "ວຽກກວດສອບຂໍ້ມູນ (Scrub)"
 
 msgid "Scrub started."
-msgstr ""
+msgstr "ເລີ່ມການກວດສອບຂໍ້ມູນແລ້ວ."
 
 msgid "Select devices ..."
-msgstr ""
+msgstr "ເລືອກອຸປະກອນ ..."
 
 msgid "Select the devices that will be used to create the file system."
-msgstr ""
+msgstr "ເລືອກອຸປະກອນທີ່ຈະໃຊ້ໃນການສ້າງລະບົບໄຟລ໌."
 
 msgid "Send email on error only"
-msgstr ""
+msgstr "ສົ່ງອີເມລ໌ເມື່ອເກີດຂໍ້ຜິດພາດເທົ່ານັ້ນ"
 
 msgid "Send output via email"
-msgstr ""
+msgstr "ສົ່ງຜົນການເຮັດວຽກຜ່ານອີເມລ໌"
 
 msgid "Send the command output via email on completion."
-msgstr ""
+msgstr "ສົ່ງຜົນການເຮັດວຽກຂອງຄຳສັ່ງຜ່ານອີເມລ໌ເມື່ອສຳເລັດ."
 
 msgid "September"
-msgstr ""
+msgstr "ກັນຍາ"
 
 msgid "Settings"
-msgstr ""
+msgstr "ການຕັ້ງຄ່າ"
 
 msgid "Snapshot"
-msgstr ""
+msgstr "ສະນັບຊອດ"
 
 msgid "Snapshot Jobs"
-msgstr ""
+msgstr "ວຽກສະນັບຊອດ"
 
 msgid "Snapshot prefix"
-msgstr ""
+msgstr "ຄຳນຳໜ້າສະນັບຊອດ"
 
 msgid ""
 "Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
 "<mountpoint>/.snapshots/<subvolume>/."
 msgstr ""
+"ສະນັບຊອດຈະຖືກຕັ້ງຊື່ເປັນ <prefix>-YYYYMMDD-HHMMSS ແລະ ເກັບໄວ້ໃນ "
+"<mountpoint>/.snapshots/<subvolume>/."
 
 msgid "Starting scrub ..."
-msgstr ""
+msgstr "ກຳລັງເລີ່ມການກວດສອບຂໍ້ມູນ ..."
 
 msgid "Subvolume"
-msgstr ""
+msgstr "ຊັບວໍລຸມ"
 
 msgid "Subvolumes"
-msgstr ""
+msgstr "ຊັບວໍລຸມ"
 
 msgid "Sunday"
-msgstr ""
+msgstr "ວັນອາທິດ"
 
 msgid "The field should only contain * or a comma separated list of values."
-msgstr ""
+msgstr "ຊ່ອງນີ້ຄວນມີພຽງເຄື່ອງໝາຍ * ຫຼື ລາຍການຄ່າທີ່ຂັ້ນດ້ວຍຈຸດ."
 
 msgid ""
 "The filesystem or subvolume under which the new subvolume will be created."
-msgstr ""
+msgstr "ລະບົບໄຟລ໌ ຫຼື ຊັບວໍລຸມ ທີ່ຈະໃຊ້ເປັນບ່ອນສ້າງຊັບວໍລຸມໃໝ່."
 
 msgid "The name must not contain a slash."
-msgstr ""
+msgstr "ຊື່ຕ້ອງບໍ່ມີເຄື່ອງໝາຍ slash (/)."
 
 msgid "The name of the new subvolume."
-msgstr ""
+msgstr "ຊື່ຂອງຊັບວໍລຸມໃໝ່."
 
 msgid ""
 "The number of devices must be at least equal to the number of replicas."
-msgstr ""
+msgstr "ຈຳນວນອຸປະກອນຕ້ອງມີຢ່າງໜ້ອຍເທົ່າກັບຈຳນວນຊຸດສຳເນົາ (replicas)."
 
 msgid ""
 "The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
 "It is used to automatically unlock this filesystem at boot."
 msgstr ""
+"ລະຫັດຜ່ານຈະຖືກເກັບໄວ້ໃນ /etc/bcachefs/keys/ ເຊິ່ງອ່ານໄດ້ສະເພາະ root "
+"ເທົ່ານັ້ນ. ມັນຖືກໃຊ້ເພື່ອປົດລັອກລະບົບໄຟລ໌ນີ້ໂດຍອັດຕະໂນມັດຕອນບູດ."
 
 msgid "The passphrases do not match."
-msgstr ""
+msgstr "ລະຫັດຜ່ານບໍ່ກົງກັນ."
 
 msgid "Thursday"
-msgstr ""
+msgstr "ວັນພະຫັດ"
 
 msgid "Time of execution"
-msgstr ""
+msgstr "ເວລາປະຕິບັດວຽກ"
 
 msgid "Tuesday"
-msgstr ""
+msgstr "ວັນອັງຄານ"
 
 msgid "Type"
-msgstr ""
+msgstr "ປະເພດ"
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Unit"
-msgstr ""
+msgstr "ຫົວໜ່ວຍ"
 
 msgid "Updated scrub job."
-msgstr ""
+msgstr "ອັບເດດວຽກກວດສອບຂໍ້ມູນແລ້ວ."
 
 msgid "Updated snapshot job."
-msgstr ""
+msgstr "ອັບເດດວຽກສະນັບຊອດແລ້ວ."
 
 msgid "Wednesday"
-msgstr ""
+msgstr "ວັນພຸດ"
 
 msgid "Weekly"
-msgstr ""
+msgstr "ລາຍອາທິດ"
 
 msgid ""
 "Write data in-place when possible. Improves performance for databases and VM"
 " image storage. Implicitly disables checksums, compression, and encryption."
 msgstr ""
+"ຂຽນຂໍ້ມູນລົງບ່ອນເດີມ (in-place) ຖ້າເປັນໄປໄດ້. "
+"ຊ່ວຍເພີ່ມປະສິດທິພາບສຳລັບຖານຂໍ້ມູນ ແລະ ການເກັບໄຟລ໌ VM image. "
+"ການເປີດໃຊ້ງານນີ້ຈະປິດລະຫັດກວດສອບ, ການບີບອັດ ແລະ ການເຂົ້າລະຫັດໂດຍອັດຕະໂນມັດ."
 
 msgid "Yearly"
+msgstr "ລາຍປີ"
+
+msgid ""
+"bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ "
+"kernelVersion }}) is not supported — the DKMS module will not be installed. "
+"Upgrade your kernel and reboot to enable bcachefs."
 msgstr ""
 
 msgid "bcachefs-tools-release — stable builds (best for production use)"
-msgstr ""
+msgstr "bcachefs-tools-release — ລຸ້ນທີ່ໝັ້ນຄົງ (ເໝາະສຳລັບການໃຊ້ງານຈິງ)"
 
 msgid ""
 "bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
 " development)"
 msgstr ""
+"bcachefs-tools-snapshot — ລຸ້ນຫຼ້າສຸດ, ອັບເດດເລື້ອຍໆ (ເໝາະສຳລັບການທົດສອບ ແລະ"
+" ພັດທະນາ)"
 
 msgid "days"
-msgstr ""
+msgstr "ມື້"
 
 msgid "months"
-msgstr ""
+msgstr "ເດືອນ"
 
 msgid "snapshots"
-msgstr ""
+msgstr "ສະນັບຊອດ"
 
 msgid "weeks"
-msgstr ""
+msgstr "ອາທິດ"
 
 msgid "years"
-msgstr ""
+msgstr "ປີ"

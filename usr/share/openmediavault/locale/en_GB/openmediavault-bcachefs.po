@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the openmediavault-bcachefs package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Andi Chandler <andi@gowling.com>, 2026
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"POT-Creation-Date: 2026-05-31 00:55+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>, 2026\n"
 "Language-Team: English (United Kingdom) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/en_GB/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,160 +25,205 @@ msgid ""
 "'Snapshots' keeps the N most recent; time units delete snapshots older than "
 "N days/weeks/months/years."
 msgstr ""
+"'Snapshots' keeps the N most recent; time units delete snapshots older than "
+"N days/weeks/months/years."
 
 msgid "Advanced"
-msgstr ""
+msgstr "Advanced"
 
 msgid "April"
+msgstr "April"
+
+msgid ""
+"Assign devices to named label groups to enable tiering between device types "
+"(e.g. SSD and HDD). Hides the Devices field above — use the group selectors "
+"instead."
 msgstr ""
 
 msgid "At reboot"
-msgstr ""
+msgstr "At reboot"
 
 msgid "August"
-msgstr ""
+msgstr "August"
 
 msgid "Auto-unlock"
-msgstr ""
+msgstr "Auto-unlock"
 
 msgid "Auto-unlock at boot"
+msgstr "Auto-unlock at boot"
+
+msgid "Background Target"
 msgstr ""
 
 msgid "Bcachefs"
-msgstr ""
+msgstr "Bcachefs"
 
 msgid "CRC32c (default)"
-msgstr ""
+msgstr "CRC32c (default)"
 
 msgid "Certain date"
-msgstr ""
+msgstr "Certain date"
 
 msgid ""
 "Changing the suite will reinstall bcachefs-tools from the selected "
 "repository on the next Apply."
 msgstr ""
+"Changing the suite will reinstall bcachefs-tools from the selected "
+"repository on the next Apply."
 
 msgid "Checksum"
-msgstr ""
+msgstr "Checksum"
 
 msgid ""
 "Checksum algorithm for data and metadata integrity verification. Disabled "
 "automatically when NoCOW is enabled."
 msgstr ""
+"Checksum algorithm for data and metadata integrity verification. Disabled "
+"automatically when NoCOW is enabled."
 
 msgid "Comment"
-msgstr ""
+msgstr "Comment"
 
 msgid "Compression"
-msgstr ""
+msgstr "Compression"
 
 msgid ""
 "Compression algorithm applied to new data writes. Disabled automatically "
 "when NoCOW is enabled."
 msgstr ""
+"Compression algorithm applied to new data writes. Disabled automatically "
+"when NoCOW is enabled."
 
 msgid "Confirm Passphrase"
-msgstr ""
+msgstr "Confirm Passphrase"
 
 msgid "Create"
-msgstr ""
+msgstr "Create"
 
 msgid "Create file system"
-msgstr ""
+msgstr "Create file system"
 
 msgid "Create the snapshot as read-only."
-msgstr ""
+msgstr "Create the snapshot as read-only."
 
 msgid "Created scrub job."
-msgstr ""
+msgstr "Created scrub job."
 
 msgid "Created snapshot job."
-msgstr ""
+msgstr "Created snapshot job."
 
 msgid "Created subvolume."
-msgstr ""
+msgstr "Created subvolume."
 
 msgid "Daily"
-msgstr ""
+msgstr "Daily"
 
 msgid "Data Integrity"
-msgstr ""
+msgstr "Data Integrity"
 
 msgid "Day of month"
-msgstr ""
+msgstr "Day of month"
 
 msgid "Day of week"
-msgstr ""
+msgstr "Day of week"
 
 msgid "December"
-msgstr ""
+msgstr "December"
 
 msgid "Devices"
-msgstr ""
+msgstr "Devices"
 
 msgid "Disable COW"
-msgstr ""
+msgstr "Disable COW"
 
 msgid "Disable auto-unlock"
-msgstr ""
+msgstr "Disable auto-unlock"
 
 msgid ""
 "Do you really want to disable auto-unlock? The key file will be deleted and "
 "the filesystem will require a passphrase at next boot."
 msgstr ""
+"Do you really want to disable auto-unlock? The key file will be deleted and "
+"the filesystem will require a passphrase at next boot."
 
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 msgid "Enable Auto-unlock"
-msgstr ""
+msgstr "Enable Auto-unlock"
 
 msgid "Enable auto-unlock"
+msgstr "Enable auto-unlock"
+
+msgid "Enable device label groups"
 msgstr ""
 
 msgid ""
 "Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
 "NoCOW is enabled."
 msgstr ""
+"Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
+"NoCOW is enabled."
 
 msgid "Enabled"
-msgstr ""
+msgstr "Enabled"
 
 msgid "Encrypted"
-msgstr ""
+msgstr "Encrypted"
 
 msgid "Encryption"
-msgstr ""
+msgstr "Encryption"
 
 msgid "Every N day of month"
-msgstr ""
+msgstr "Every N day of month"
 
 msgid "Every N hour"
-msgstr ""
+msgstr "Every N hour"
 
 msgid "Every N minute"
-msgstr ""
+msgstr "Every N minute"
 
 msgid "February"
-msgstr ""
+msgstr "February"
 
 msgid "Filesystem"
-msgstr ""
+msgstr "Filesystem"
 
 msgid "Filesystems"
+msgstr "Filesystems"
+
+msgid "Foreground Target"
 msgstr ""
 
 msgid "Friday"
-msgstr ""
+msgstr "Friday"
 
 msgid "General"
+msgstr "General"
+
+msgid "Group 1 Devices"
+msgstr ""
+
+msgid "Group 1 Name"
+msgstr ""
+
+msgid "Group 2 Devices"
+msgstr ""
+
+msgid "Group 2 Name"
+msgstr ""
+
+msgid "Group 3 Devices"
+msgstr ""
+
+msgid "Group 3 Name"
 msgstr ""
 
 msgid "Hour"
-msgstr ""
+msgstr "Hour"
 
 msgid "Hourly"
-msgstr ""
+msgstr "Hourly"
 
 msgid ""
 "If a device is not listed here, it is usually because the device already "
@@ -183,255 +232,309 @@ msgid ""
 "please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
 "supported."
 msgstr ""
+"If a device is not listed here, it is usually because the device already "
+"contains a file system or partitions. With the former, the file system can "
+"be mounted <a href='#/storage/filesystems/mount'>here</a>. For the latter, "
+"please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
+"supported."
 
 msgid "In Use"
-msgstr ""
+msgstr "In Use"
 
 msgid "January"
-msgstr ""
+msgstr "January"
 
 msgid "July"
-msgstr ""
+msgstr "July"
 
 msgid "June"
-msgstr ""
+msgstr "June"
 
 msgid "Keep"
-msgstr ""
+msgstr "Keep"
 
 msgid "Label"
+msgstr "Label"
+
+msgid "Label group name (e.g. 'hdd')."
+msgstr ""
+
+msgid ""
+"Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
+"group.group2, etc."
+msgstr ""
+
+msgid ""
+"Label group where data is moved to in the background (e.g. 'hdd'). Leave "
+"empty to use bcachefs defaults."
+msgstr ""
+
+msgid ""
+"Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave "
+"empty to disable promotion."
+msgstr ""
+
+msgid ""
+"Label group where new data is written first (e.g. 'ssd'). Leave empty to use"
+" bcachefs defaults."
 msgstr ""
 
 msgid "March"
-msgstr ""
+msgstr "March"
 
 msgid "May"
-msgstr ""
+msgstr "May"
 
 msgid "Minute"
-msgstr ""
+msgstr "Minute"
 
 msgid "Monday"
-msgstr ""
+msgstr "Monday"
 
 msgid "Month"
-msgstr ""
+msgstr "Month"
 
 msgid "Monthly"
-msgstr ""
+msgstr "Monthly"
 
 msgid "Mountpoint"
-msgstr ""
+msgstr "Mountpoint"
 
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 msgid "None"
-msgstr ""
+msgstr "None"
 
 msgid "November"
-msgstr ""
+msgstr "November"
 
-msgid "Number of copies to store for both data and metadata."
+msgid ""
+"Number of copies to store for both data and metadata. Usable space ≈ total "
+"raw ÷ replicas — df shows raw capacity"
 msgstr ""
 
 msgid "October"
-msgstr ""
+msgstr "October"
 
 msgid "Only alphanumeric characters, hyphens, and underscores are allowed."
-msgstr ""
+msgstr "Only alphanumeric characters, hyphens, and underscores are allowed."
 
 msgid "Only send an email if the job exits with an error."
-msgstr ""
+msgstr "Only send an email if the job exits with an error."
 
 msgid "Optional label to identify this filesystem."
+msgstr "Optional label to identify this filesystem."
+
+msgid "Optional third group. Leave empty if not needed."
 msgstr ""
 
 msgid "Package suite"
-msgstr ""
+msgstr "Package suite"
 
 msgid "Parent"
-msgstr ""
+msgstr "Parent"
 
 msgid "Passphrase"
-msgstr ""
+msgstr "Passphrase"
 
 msgid "Path"
-msgstr ""
+msgstr "Path"
 
 msgid "Prefix"
+msgstr "Prefix"
+
+msgid "Promote Target"
 msgstr ""
 
 msgid "Read-only"
-msgstr ""
+msgstr "Read-only"
 
 msgid "Read-only snapshot"
-msgstr ""
+msgstr "Read-only snapshot"
 
 msgid "Replicas"
-msgstr ""
+msgstr "Replicas"
 
 msgid "Repository"
-msgstr ""
+msgstr "Repository"
 
 msgid "Run"
-msgstr ""
+msgstr "Run"
 
 msgid "Run now"
-msgstr ""
+msgstr "Run now"
 
 msgid "Run snapshot job"
-msgstr ""
+msgstr "Run snapshot job"
 
 msgid "Saturday"
-msgstr ""
+msgstr "Saturday"
 
 msgid ""
 "Save the passphrase to a root-only key file so the filesystem unlocks "
 "automatically at boot. The key is stored in /etc/bcachefs/keys/."
 msgstr ""
+"Save the passphrase to a root-only key file so the filesystem unlocks "
+"automatically at boot. The key is stored in /etc/bcachefs/keys/."
 
 msgid "Schedule"
-msgstr ""
+msgstr "Schedule"
 
 msgid "Scheduling"
-msgstr ""
+msgstr "Scheduling"
 
 msgid "Scrub Jobs"
-msgstr ""
+msgstr "Scrub Jobs"
 
 msgid "Scrub started."
-msgstr ""
+msgstr "Scrub started."
 
 msgid "Select devices ..."
-msgstr ""
+msgstr "Select devices ..."
 
 msgid "Select the devices that will be used to create the file system."
-msgstr ""
+msgstr "Select the devices that will be used to create the file system."
 
 msgid "Send email on error only"
-msgstr ""
+msgstr "Send email on error only"
 
 msgid "Send output via email"
-msgstr ""
+msgstr "Send output via email"
 
 msgid "Send the command output via email on completion."
-msgstr ""
+msgstr "Send the command output via email on completion."
 
 msgid "September"
-msgstr ""
+msgstr "September"
 
 msgid "Settings"
-msgstr ""
+msgstr "Settings"
 
 msgid "Snapshot"
-msgstr ""
+msgstr "Snapshot"
 
 msgid "Snapshot Jobs"
-msgstr ""
+msgstr "Snapshot Jobs"
 
 msgid "Snapshot prefix"
-msgstr ""
+msgstr "Snapshot prefix"
 
 msgid ""
 "Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
 "<mountpoint>/.snapshots/<subvolume>/."
 msgstr ""
+"Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
+"<mountpoint>/.snapshots/<subvolume>/."
 
 msgid "Starting scrub ..."
-msgstr ""
+msgstr "Starting scrub ..."
 
 msgid "Subvolume"
-msgstr ""
+msgstr "Subvolume"
 
 msgid "Subvolumes"
-msgstr ""
+msgstr "Subvolumes"
 
 msgid "Sunday"
-msgstr ""
+msgstr "Sunday"
 
 msgid "The field should only contain * or a comma separated list of values."
-msgstr ""
+msgstr "The field should only contain * or a comma separated list of values."
 
 msgid ""
 "The filesystem or subvolume under which the new subvolume will be created."
 msgstr ""
+"The filesystem or subvolume under which the new subvolume will be created."
 
 msgid "The name must not contain a slash."
-msgstr ""
+msgstr "The name must not contain a slash."
 
 msgid "The name of the new subvolume."
-msgstr ""
+msgstr "The name of the new subvolume."
 
 msgid ""
 "The number of devices must be at least equal to the number of replicas."
 msgstr ""
+"The number of devices must be at least equal to the number of replicas."
 
 msgid ""
 "The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
 "It is used to automatically unlock this filesystem at boot."
 msgstr ""
+"The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
+"It is used to automatically unlock this filesystem at boot."
 
 msgid "The passphrases do not match."
-msgstr ""
+msgstr "The passphrases do not match."
 
 msgid "Thursday"
-msgstr ""
+msgstr "Thursday"
 
 msgid "Time of execution"
-msgstr ""
+msgstr "Time of execution"
 
 msgid "Tuesday"
-msgstr ""
+msgstr "Tuesday"
 
 msgid "Type"
-msgstr ""
+msgstr "Type"
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Unit"
-msgstr ""
+msgstr "Unit"
 
 msgid "Updated scrub job."
-msgstr ""
+msgstr "Updated scrub job."
 
 msgid "Updated snapshot job."
-msgstr ""
+msgstr "Updated snapshot job."
 
 msgid "Wednesday"
-msgstr ""
+msgstr "Wednesday"
 
 msgid "Weekly"
-msgstr ""
+msgstr "Weekly"
 
 msgid ""
 "Write data in-place when possible. Improves performance for databases and VM"
 " image storage. Implicitly disables checksums, compression, and encryption."
 msgstr ""
+"Write data in-place when possible. Improves performance for databases and VM"
+" image storage. Implicitly disables checksums, compression, and encryption."
 
 msgid "Yearly"
+msgstr "Yearly"
+
+msgid ""
+"bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ "
+"kernelVersion }}) is not supported — the DKMS module will not be installed. "
+"Upgrade your kernel and reboot to enable bcachefs."
 msgstr ""
 
 msgid "bcachefs-tools-release — stable builds (best for production use)"
-msgstr ""
+msgstr "bcachefs-tools-release — stable builds (best for production use)"
 
 msgid ""
 "bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
 " development)"
 msgstr ""
+"bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
+" development)"
 
 msgid "days"
-msgstr ""
+msgstr "days"
 
 msgid "months"
-msgstr ""
+msgstr "months"
 
 msgid "snapshots"
-msgstr ""
+msgstr "snapshots"
 
 msgid "weeks"
-msgstr ""
+msgstr "weeks"
 
 msgid "years"
-msgstr ""
+msgstr "years"

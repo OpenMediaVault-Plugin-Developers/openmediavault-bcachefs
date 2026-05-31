@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the openmediavault-bcachefs package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Stephan Paternotte <stephan@paternottes.net>, 2026
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"POT-Creation-Date: 2026-05-31 00:55+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
+"Last-Translator: Stephan Paternotte <stephan@paternottes.net>, 2026\n"
 "Language-Team: Dutch (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,160 +25,206 @@ msgid ""
 "'Snapshots' keeps the N most recent; time units delete snapshots older than "
 "N days/weeks/months/years."
 msgstr ""
+"‘Momentopnamen’ behoudt de N het meest recente; tijdseenheden verwijderen "
+"momentopnamen ouder dan N dagen/weken/maanden/jaren."
 
 msgid "Advanced"
-msgstr ""
+msgstr "Geavanceerd"
 
 msgid "April"
+msgstr "April"
+
+msgid ""
+"Assign devices to named label groups to enable tiering between device types "
+"(e.g. SSD and HDD). Hides the Devices field above — use the group selectors "
+"instead."
 msgstr ""
 
 msgid "At reboot"
-msgstr ""
+msgstr "Bij opstart"
 
 msgid "August"
-msgstr ""
+msgstr "Augustus"
 
 msgid "Auto-unlock"
-msgstr ""
+msgstr "Autom. ontgrendelen"
 
 msgid "Auto-unlock at boot"
+msgstr "Autom. ontgrendelen bij opstart"
+
+msgid "Background Target"
 msgstr ""
 
 msgid "Bcachefs"
-msgstr ""
+msgstr "Bcachefs"
 
 msgid "CRC32c (default)"
-msgstr ""
+msgstr "CRC32c (standaard)"
 
 msgid "Certain date"
-msgstr ""
+msgstr "Zekere datum"
 
 msgid ""
 "Changing the suite will reinstall bcachefs-tools from the selected "
 "repository on the next Apply."
 msgstr ""
+"Als u de suite wijzigt, worden bcachefs-tools uit de geselecteerde "
+"oplagplaats opnieuw geïnstalleerd bij de volgende toepassing."
 
 msgid "Checksum"
-msgstr ""
+msgstr "Controlesom"
 
 msgid ""
 "Checksum algorithm for data and metadata integrity verification. Disabled "
 "automatically when NoCOW is enabled."
 msgstr ""
+"Controlesom-algoritme voor verificatie van de integriteit van gegevens en "
+"metagegevens. Automatisch uitgeschakeld wanneer NoCOW is ingeschakeld."
 
 msgid "Comment"
-msgstr ""
+msgstr "Opmerking"
 
 msgid "Compression"
-msgstr ""
+msgstr "Compressie"
 
 msgid ""
 "Compression algorithm applied to new data writes. Disabled automatically "
 "when NoCOW is enabled."
 msgstr ""
+"Compressie-algoritme toegepast op nieuwe gegevensschrijfbewerkingen. "
+"Automatisch uitgeschakeld wanneer NoCOW is ingeschakeld."
 
 msgid "Confirm Passphrase"
-msgstr ""
+msgstr "Wachtwoordzin bevestigen"
 
 msgid "Create"
-msgstr ""
+msgstr "Aanmaken"
 
 msgid "Create file system"
-msgstr ""
+msgstr "Bestandssysteem aanmaken"
 
 msgid "Create the snapshot as read-only."
-msgstr ""
+msgstr "De momentopname als alleen-lezen aanmaken."
 
 msgid "Created scrub job."
-msgstr ""
+msgstr "Scrub-taak aanmaken."
 
 msgid "Created snapshot job."
-msgstr ""
+msgstr "Momentopname aangemaakt."
 
 msgid "Created subvolume."
-msgstr ""
+msgstr "Subvolume aangemaakt."
 
 msgid "Daily"
-msgstr ""
+msgstr "Dagelijks"
 
 msgid "Data Integrity"
-msgstr ""
+msgstr "Gegevensintegriteit"
 
 msgid "Day of month"
-msgstr ""
+msgstr "Dag van maand"
 
 msgid "Day of week"
-msgstr ""
+msgstr "Dag van week"
 
 msgid "December"
-msgstr ""
+msgstr "December"
 
 msgid "Devices"
-msgstr ""
+msgstr "Apparaten"
 
 msgid "Disable COW"
-msgstr ""
+msgstr "COW uitschakelen"
 
 msgid "Disable auto-unlock"
-msgstr ""
+msgstr "Autom. ontgrendeling uitschakelen"
 
 msgid ""
 "Do you really want to disable auto-unlock? The key file will be deleted and "
 "the filesystem will require a passphrase at next boot."
 msgstr ""
+"Wilt u autom. ontgrendeling echt uitschakelen? Het sleutelbestand wordt "
+"verwijderd en voor het bestandssysteem is bij de volgende keer opstarten een"
+" wachtwoordzin vereist."
 
 msgid "Edit"
-msgstr ""
+msgstr "Bewerken"
 
 msgid "Enable Auto-unlock"
-msgstr ""
+msgstr "Autom. ontgrendeling inschakelen"
 
 msgid "Enable auto-unlock"
+msgstr "Autom. ontgrendeling inschakelen"
+
+msgid "Enable device label groups"
 msgstr ""
 
 msgid ""
 "Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
 "NoCOW is enabled."
 msgstr ""
+"Versleuteling van het hele bestandssysteem inschakelen (chacha20/poly1305). "
+"Niet beschikbaar wanneer NoCOW is ingeschakeld."
 
 msgid "Enabled"
-msgstr ""
+msgstr "Ingeschakeld"
 
 msgid "Encrypted"
-msgstr ""
+msgstr "Versleuteld"
 
 msgid "Encryption"
-msgstr ""
+msgstr "Versleuteling"
 
 msgid "Every N day of month"
-msgstr ""
+msgstr "Elke N-de dag van de maand"
 
 msgid "Every N hour"
-msgstr ""
+msgstr "Elke N uur"
 
 msgid "Every N minute"
-msgstr ""
+msgstr "Elke N minuten"
 
 msgid "February"
-msgstr ""
+msgstr "Februari"
 
 msgid "Filesystem"
-msgstr ""
+msgstr "Bestandssysteem"
 
 msgid "Filesystems"
+msgstr "Bestandssystemen"
+
+msgid "Foreground Target"
 msgstr ""
 
 msgid "Friday"
-msgstr ""
+msgstr "Vrijdag"
 
 msgid "General"
+msgstr "Algemeen"
+
+msgid "Group 1 Devices"
+msgstr ""
+
+msgid "Group 1 Name"
+msgstr ""
+
+msgid "Group 2 Devices"
+msgstr ""
+
+msgid "Group 2 Name"
+msgstr ""
+
+msgid "Group 3 Devices"
+msgstr ""
+
+msgid "Group 3 Name"
 msgstr ""
 
 msgid "Hour"
-msgstr ""
+msgstr "Uur"
 
 msgid "Hourly"
-msgstr ""
+msgstr "Elk uur"
 
 msgid ""
 "If a device is not listed here, it is usually because the device already "
@@ -183,255 +233,322 @@ msgid ""
 "please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
 "supported."
 msgstr ""
+"Als een apparaat hier niet wordt vermeld, komt dat meestal omdat het "
+"apparaat al een bestandssysteem of partities bevat. Bij de eerste kan het "
+"bestandssysteem <a href='#/storage/filesystems/mount'>hier</a> worden "
+"aangekoppeld. Voor dit laatste kunt u het apparaat <a "
+"href='#/storage/disks'>wipe</a> gebruiken, omdat partities niet worden "
+"ondersteund."
 
 msgid "In Use"
-msgstr ""
+msgstr "In gebruik"
 
 msgid "January"
-msgstr ""
+msgstr "Januari"
 
 msgid "July"
-msgstr ""
+msgstr "Juli"
 
 msgid "June"
-msgstr ""
+msgstr "Juni"
 
 msgid "Keep"
-msgstr ""
+msgstr "Behouden"
 
 msgid "Label"
+msgstr "Label"
+
+msgid "Label group name (e.g. 'hdd')."
+msgstr ""
+
+msgid ""
+"Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
+"group.group2, etc."
+msgstr ""
+
+msgid ""
+"Label group where data is moved to in the background (e.g. 'hdd'). Leave "
+"empty to use bcachefs defaults."
+msgstr ""
+
+msgid ""
+"Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave "
+"empty to disable promotion."
+msgstr ""
+
+msgid ""
+"Label group where new data is written first (e.g. 'ssd'). Leave empty to use"
+" bcachefs defaults."
 msgstr ""
 
 msgid "March"
-msgstr ""
+msgstr "Maart"
 
 msgid "May"
-msgstr ""
+msgstr "Mei"
 
 msgid "Minute"
-msgstr ""
+msgstr "Minuut"
 
 msgid "Monday"
-msgstr ""
+msgstr "Maandag"
 
 msgid "Month"
-msgstr ""
+msgstr "Maand"
 
 msgid "Monthly"
-msgstr ""
+msgstr "Maandelijks"
 
 msgid "Mountpoint"
-msgstr ""
+msgstr "Aankoppelpunt"
 
 msgid "Name"
-msgstr ""
+msgstr "Naam"
 
 msgid "None"
-msgstr ""
+msgstr "Geen"
 
 msgid "November"
-msgstr ""
+msgstr "November"
 
-msgid "Number of copies to store for both data and metadata."
+msgid ""
+"Number of copies to store for both data and metadata. Usable space ≈ total "
+"raw ÷ replicas — df shows raw capacity"
 msgstr ""
 
 msgid "October"
-msgstr ""
+msgstr "Oktober"
 
 msgid "Only alphanumeric characters, hyphens, and underscores are allowed."
 msgstr ""
+"Alleen alfanumerieke tekens, koppeltekens en onderstrepingstekens zijn "
+"toegestaan."
 
 msgid "Only send an email if the job exits with an error."
 msgstr ""
+"Alleen een e-mail versturen als de taak met een fout wordt afgesloten."
 
 msgid "Optional label to identify this filesystem."
+msgstr "Optioneel label om dit bestandssysteem te identificeren."
+
+msgid "Optional third group. Leave empty if not needed."
 msgstr ""
 
 msgid "Package suite"
-msgstr ""
+msgstr "Pakket suite"
 
 msgid "Parent"
-msgstr ""
+msgstr "Ouder"
 
 msgid "Passphrase"
-msgstr ""
+msgstr "Wachtwoordzin"
 
 msgid "Path"
-msgstr ""
+msgstr "Pad"
 
 msgid "Prefix"
+msgstr "Voorvoegsel"
+
+msgid "Promote Target"
 msgstr ""
 
 msgid "Read-only"
-msgstr ""
+msgstr "Alleen-lezen"
 
 msgid "Read-only snapshot"
-msgstr ""
+msgstr "Alleen-lezen momentopname"
 
 msgid "Replicas"
-msgstr ""
+msgstr "Replica's"
 
 msgid "Repository"
-msgstr ""
+msgstr "Opslagplaats"
 
 msgid "Run"
-msgstr ""
+msgstr "Uitvoeren"
 
 msgid "Run now"
-msgstr ""
+msgstr "Nu uitvoeren"
 
 msgid "Run snapshot job"
-msgstr ""
+msgstr "Momentopname-taak uitvoeren"
 
 msgid "Saturday"
-msgstr ""
+msgstr "Zaterdag"
 
 msgid ""
 "Save the passphrase to a root-only key file so the filesystem unlocks "
 "automatically at boot. The key is stored in /etc/bcachefs/keys/."
 msgstr ""
+"Sla de wachtwoordzin op in een root-sleutelbestand, zodat het "
+"bestandssysteem automatisch ontgrendelt bij het opstarten. De sleutel wordt "
+"opgeslagen in /etc/bcachefs/keys/."
 
 msgid "Schedule"
-msgstr ""
+msgstr "Planning"
 
 msgid "Scheduling"
-msgstr ""
+msgstr "Plannen"
 
 msgid "Scrub Jobs"
-msgstr ""
+msgstr "Scrub-taken"
 
 msgid "Scrub started."
-msgstr ""
+msgstr "Scrub gestart."
 
 msgid "Select devices ..."
-msgstr ""
+msgstr "Apparaten selecteren…"
 
 msgid "Select the devices that will be used to create the file system."
 msgstr ""
+"Selecteer de apparaten die zullen worden gebruikt om het bestandssysteem aan"
+" te maken."
 
 msgid "Send email on error only"
-msgstr ""
+msgstr "Alleen e-mail versturen bij fout"
 
 msgid "Send output via email"
-msgstr ""
+msgstr "Uitvoer versturen via e-mail"
 
 msgid "Send the command output via email on completion."
-msgstr ""
+msgstr "De opdrachtuitvoer na voltooiing via e-mail verturen."
 
 msgid "September"
-msgstr ""
+msgstr "September"
 
 msgid "Settings"
-msgstr ""
+msgstr "Instellingen"
 
 msgid "Snapshot"
-msgstr ""
+msgstr "Momentopname"
 
 msgid "Snapshot Jobs"
-msgstr ""
+msgstr "Momentopname-taken"
 
 msgid "Snapshot prefix"
-msgstr ""
+msgstr "Momentopname-voorvoegsel"
 
 msgid ""
 "Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
 "<mountpoint>/.snapshots/<subvolume>/."
 msgstr ""
+"Momentopnamen krijgen de naam <prefix>-YYYYMMDD-HHMMSS en worden opgeslagen "
+"in <mountpoint>/.snapshots/<subvolume>/."
 
 msgid "Starting scrub ..."
-msgstr ""
+msgstr "Scrub starten…"
 
 msgid "Subvolume"
-msgstr ""
+msgstr "Subvolume"
 
 msgid "Subvolumes"
-msgstr ""
+msgstr "Subvolumes"
 
 msgid "Sunday"
-msgstr ""
+msgstr "Zondag"
 
 msgid "The field should only contain * or a comma separated list of values."
 msgstr ""
+"Het veld mag alleen * of een door komma's gescheiden lijst met waarden "
+"bevatten."
 
 msgid ""
 "The filesystem or subvolume under which the new subvolume will be created."
 msgstr ""
+"Het bestandssysteem of subvolume waaronder het nieuwe subvolume wordt "
+"aangemaakt."
 
 msgid "The name must not contain a slash."
-msgstr ""
+msgstr "De naam mag geen schuine streep bevatten."
 
 msgid "The name of the new subvolume."
-msgstr ""
+msgstr "De naam van het nieuwe subvolume."
 
 msgid ""
 "The number of devices must be at least equal to the number of replicas."
 msgstr ""
+"Het aantal apparaten moet ten minste gelijk zijn aan het aantal replica's."
 
 msgid ""
 "The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
 "It is used to automatically unlock this filesystem at boot."
 msgstr ""
+"De wachtwoordzin wordt opgeslagen in /etc/bcachefs/keys/ alleen leesbaar "
+"door root. Het wordt gebruikt om dit bestandssysteem automatisch te "
+"ontgrendelen bij het opstarten."
 
 msgid "The passphrases do not match."
-msgstr ""
+msgstr "De wachtwoordzinnen komen niet overeen."
 
 msgid "Thursday"
-msgstr ""
+msgstr "Donderdag"
 
 msgid "Time of execution"
-msgstr ""
+msgstr "Tijdstip van uitvoering"
 
 msgid "Tuesday"
-msgstr ""
+msgstr "Dinsdag"
 
 msgid "Type"
-msgstr ""
+msgstr "Type"
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Unit"
-msgstr ""
+msgstr "Eenheid"
 
 msgid "Updated scrub job."
-msgstr ""
+msgstr "Scrub-taak bijgewerkt."
 
 msgid "Updated snapshot job."
-msgstr ""
+msgstr "Momentopname-taak bijgewerkt."
 
 msgid "Wednesday"
-msgstr ""
+msgstr "Woensdag"
 
 msgid "Weekly"
-msgstr ""
+msgstr "Wekelijks"
 
 msgid ""
 "Write data in-place when possible. Improves performance for databases and VM"
 " image storage. Implicitly disables checksums, compression, and encryption."
 msgstr ""
+"Waar mogelijk gegevens ter-plaatse schrijven. Verbetert de prestaties voor "
+"databases en opslag van VM-images. Controlesommen, compressie en encryptie "
+"zijn impliciet uitgeschakeld."
 
 msgid "Yearly"
+msgstr "Jaarlijks"
+
+msgid ""
+"bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ "
+"kernelVersion }}) is not supported — the DKMS module will not be installed. "
+"Upgrade your kernel and reboot to enable bcachefs."
 msgstr ""
 
 msgid "bcachefs-tools-release — stable builds (best for production use)"
 msgstr ""
+"bcachefs-tools-release — stabiele builds (beste voor betrouwbaar gebruik)"
 
 msgid ""
 "bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
 " development)"
 msgstr ""
+"bcachefs-tools-snapshot — jongste builds, vaak updates (beste voor testen en"
+" ontwikkeling)"
 
 msgid "days"
-msgstr ""
+msgstr "dagen"
 
 msgid "months"
-msgstr ""
+msgstr "maanden"
 
 msgid "snapshots"
-msgstr ""
+msgstr "momentopnamen"
 
 msgid "weeks"
-msgstr ""
+msgstr "weken"
 
 msgid "years"
-msgstr ""
+msgstr "jaren"

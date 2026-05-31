@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the openmediavault-bcachefs package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# songming <by@songming.me>, 2026
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 23:24+0000\n"
+"POT-Creation-Date: 2026-05-31 00:55+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
+"Last-Translator: songming <by@songming.me>, 2026\n"
 "Language-Team: Chinese (China) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,161 +24,194 @@ msgstr ""
 msgid ""
 "'Snapshots' keeps the N most recent; time units delete snapshots older than "
 "N days/weeks/months/years."
-msgstr ""
+msgstr "“快照”保留最近的 N 个；按时间粒度删除超过 N 天/周/月/年的快照。"
 
 msgid "Advanced"
-msgstr ""
+msgstr "高级"
 
 msgid "April"
+msgstr "4月"
+
+msgid ""
+"Assign devices to named label groups to enable tiering between device types "
+"(e.g. SSD and HDD). Hides the Devices field above — use the group selectors "
+"instead."
 msgstr ""
 
 msgid "At reboot"
-msgstr ""
+msgstr "重启时"
 
 msgid "August"
-msgstr ""
+msgstr "8月"
 
 msgid "Auto-unlock"
-msgstr ""
+msgstr "自动解锁"
 
 msgid "Auto-unlock at boot"
+msgstr "在启动时自动解锁"
+
+msgid "Background Target"
 msgstr ""
 
 msgid "Bcachefs"
-msgstr ""
+msgstr "Bcachefs"
 
 msgid "CRC32c (default)"
-msgstr ""
+msgstr "CRC32c （默认）"
 
 msgid "Certain date"
-msgstr ""
+msgstr "特定日期"
 
 msgid ""
 "Changing the suite will reinstall bcachefs-tools from the selected "
 "repository on the next Apply."
-msgstr ""
+msgstr "更改套件将在下次应用时从所选源重新安装 bcachefs-tools。"
 
 msgid "Checksum"
-msgstr ""
+msgstr "校验和"
 
 msgid ""
 "Checksum algorithm for data and metadata integrity verification. Disabled "
 "automatically when NoCOW is enabled."
-msgstr ""
+msgstr "校验和算法，用于数据和元数据完整性校验。当启用 NoCOW 时会自动禁用。"
 
 msgid "Comment"
-msgstr ""
+msgstr "评论"
 
 msgid "Compression"
-msgstr ""
+msgstr "压缩"
 
 msgid ""
 "Compression algorithm applied to new data writes. Disabled automatically "
 "when NoCOW is enabled."
-msgstr ""
+msgstr "压缩算法，用于新数据写入。当启用 NoCOW 时会自动禁用。"
 
 msgid "Confirm Passphrase"
-msgstr ""
+msgstr "确认密码"
 
 msgid "Create"
-msgstr ""
+msgstr "创建"
 
 msgid "Create file system"
-msgstr ""
+msgstr "创建文件系统"
 
 msgid "Create the snapshot as read-only."
-msgstr ""
+msgstr "创建只读快照。"
 
 msgid "Created scrub job."
-msgstr ""
+msgstr "已创建清理任务。"
 
 msgid "Created snapshot job."
-msgstr ""
+msgstr "已创建快照任务。"
 
 msgid "Created subvolume."
-msgstr ""
+msgstr "已创建子存储卷。"
 
 msgid "Daily"
-msgstr ""
+msgstr "每日"
 
 msgid "Data Integrity"
-msgstr ""
+msgstr "数据完整性"
 
 msgid "Day of month"
-msgstr ""
+msgstr "月内的哪天"
 
 msgid "Day of week"
-msgstr ""
+msgstr "周内的哪天"
 
 msgid "December"
-msgstr ""
+msgstr "十二月"
 
 msgid "Devices"
-msgstr ""
+msgstr "设备"
 
 msgid "Disable COW"
-msgstr ""
+msgstr "停用COW"
 
 msgid "Disable auto-unlock"
-msgstr ""
+msgstr "停用自动解锁"
 
 msgid ""
 "Do you really want to disable auto-unlock? The key file will be deleted and "
 "the filesystem will require a passphrase at next boot."
-msgstr ""
+msgstr "你真的想要禁用自动解锁吗？密钥文件将被删除，文件系统在下次启动时将需要输入密码。"
 
 msgid "Edit"
-msgstr ""
+msgstr "编辑"
 
 msgid "Enable Auto-unlock"
-msgstr ""
+msgstr "启用自动解锁"
 
 msgid "Enable auto-unlock"
+msgstr "启用自动解锁"
+
+msgid "Enable device label groups"
 msgstr ""
 
 msgid ""
 "Enable whole-filesystem encryption (chacha20/poly1305). Not available when "
 "NoCOW is enabled."
-msgstr ""
+msgstr "启用全文件系统加密（chacha20/poly1305）。启用 NoCOW 时不可用。"
 
 msgid "Enabled"
-msgstr ""
+msgstr "已启用"
 
 msgid "Encrypted"
-msgstr ""
+msgstr "已加密"
 
 msgid "Encryption"
-msgstr ""
+msgstr "加密"
 
 msgid "Every N day of month"
-msgstr ""
+msgstr "月内每 N 天"
 
 msgid "Every N hour"
-msgstr ""
+msgstr "每 N 小时"
 
 msgid "Every N minute"
-msgstr ""
+msgstr "每 N 分钟"
 
 msgid "February"
-msgstr ""
+msgstr "二月"
 
 msgid "Filesystem"
-msgstr ""
+msgstr "文件系统"
 
 msgid "Filesystems"
+msgstr "文件系统"
+
+msgid "Foreground Target"
 msgstr ""
 
 msgid "Friday"
-msgstr ""
+msgstr "星期五"
 
 msgid "General"
+msgstr "常规"
+
+msgid "Group 1 Devices"
+msgstr ""
+
+msgid "Group 1 Name"
+msgstr ""
+
+msgid "Group 2 Devices"
+msgstr ""
+
+msgid "Group 2 Name"
+msgstr ""
+
+msgid "Group 3 Devices"
+msgstr ""
+
+msgid "Group 3 Name"
 msgstr ""
 
 msgid "Hour"
-msgstr ""
+msgstr "小时"
 
 msgid "Hourly"
-msgstr ""
+msgstr "每小时"
 
 msgid ""
 "If a device is not listed here, it is usually because the device already "
@@ -183,255 +220,296 @@ msgid ""
 "please <a href='#/storage/disks'>wipe</a> the device as partitions are not "
 "supported."
 msgstr ""
+"如果设备未在此处列出，通常是因为该设备已包含文件系统或分区。对于前者，文件系统可以在<a "
+"href='#/storage/filesystems/mount'>此处</a>挂载。对于后者，请<a "
+"href='#/storage/disks'>擦除</a>设备，因为分区不被支持。"
 
 msgid "In Use"
-msgstr ""
+msgstr "使用中"
 
 msgid "January"
-msgstr ""
+msgstr "一月"
 
 msgid "July"
-msgstr ""
+msgstr "七月"
 
 msgid "June"
-msgstr ""
+msgstr "六月"
 
 msgid "Keep"
-msgstr ""
+msgstr "保留"
 
 msgid "Label"
+msgstr "标签"
+
+msgid "Label group name (e.g. 'hdd')."
+msgstr ""
+
+msgid ""
+"Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
+"group.group2, etc."
+msgstr ""
+
+msgid ""
+"Label group where data is moved to in the background (e.g. 'hdd'). Leave "
+"empty to use bcachefs defaults."
+msgstr ""
+
+msgid ""
+"Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave "
+"empty to disable promotion."
+msgstr ""
+
+msgid ""
+"Label group where new data is written first (e.g. 'ssd'). Leave empty to use"
+" bcachefs defaults."
 msgstr ""
 
 msgid "March"
-msgstr ""
+msgstr "三月"
 
 msgid "May"
-msgstr ""
+msgstr "五月"
 
 msgid "Minute"
-msgstr ""
+msgstr "分钟"
 
 msgid "Monday"
-msgstr ""
+msgstr "星期一"
 
 msgid "Month"
-msgstr ""
+msgstr "月"
 
 msgid "Monthly"
-msgstr ""
+msgstr "每月"
 
 msgid "Mountpoint"
-msgstr ""
+msgstr "挂载点"
 
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 msgid "None"
-msgstr ""
+msgstr "无"
 
 msgid "November"
-msgstr ""
+msgstr "十一月"
 
-msgid "Number of copies to store for both data and metadata."
+msgid ""
+"Number of copies to store for both data and metadata. Usable space ≈ total "
+"raw ÷ replicas — df shows raw capacity"
 msgstr ""
 
 msgid "October"
-msgstr ""
+msgstr "十月"
 
 msgid "Only alphanumeric characters, hyphens, and underscores are allowed."
-msgstr ""
+msgstr "只允许字母数字字符、连字符和下划线。"
 
 msgid "Only send an email if the job exits with an error."
-msgstr ""
+msgstr "只有在任务出现错误时才发送电子邮件。"
 
 msgid "Optional label to identify this filesystem."
+msgstr "用于标识此文件系统的可选标签。"
+
+msgid "Optional third group. Leave empty if not needed."
 msgstr ""
 
 msgid "Package suite"
-msgstr ""
+msgstr "套件"
 
 msgid "Parent"
-msgstr ""
+msgstr "父"
 
 msgid "Passphrase"
-msgstr ""
+msgstr "密码"
 
 msgid "Path"
-msgstr ""
+msgstr "路径"
 
 msgid "Prefix"
+msgstr "前缀"
+
+msgid "Promote Target"
 msgstr ""
 
 msgid "Read-only"
-msgstr ""
+msgstr "只读"
 
 msgid "Read-only snapshot"
-msgstr ""
+msgstr "只读快照"
 
 msgid "Replicas"
-msgstr ""
+msgstr "副本"
 
 msgid "Repository"
-msgstr ""
+msgstr "源"
 
 msgid "Run"
-msgstr ""
+msgstr "运行"
 
 msgid "Run now"
-msgstr ""
+msgstr "现在运行"
 
 msgid "Run snapshot job"
-msgstr ""
+msgstr "运行快照任务"
 
 msgid "Saturday"
-msgstr ""
+msgstr "星期六"
 
 msgid ""
 "Save the passphrase to a root-only key file so the filesystem unlocks "
 "automatically at boot. The key is stored in /etc/bcachefs/keys/."
-msgstr ""
+msgstr "将密码保存到仅限 root 的密钥文件中，以便文件系统在启动时自动解锁。密钥存储在 /etc/bcachefs/keys/ 中。"
 
 msgid "Schedule"
-msgstr ""
+msgstr "计划任务"
 
 msgid "Scheduling"
-msgstr ""
+msgstr "计划任务"
 
 msgid "Scrub Jobs"
-msgstr ""
+msgstr "清理任务"
 
 msgid "Scrub started."
-msgstr ""
+msgstr "清理已开始"
 
 msgid "Select devices ..."
-msgstr ""
+msgstr "选择设备 ..."
 
 msgid "Select the devices that will be used to create the file system."
-msgstr ""
+msgstr "选择将用于创建文件系统的设备。"
 
 msgid "Send email on error only"
-msgstr ""
+msgstr "只有错误时发送电子邮件"
 
 msgid "Send output via email"
-msgstr ""
+msgstr "通过电子邮件发送输出"
 
 msgid "Send the command output via email on completion."
-msgstr ""
+msgstr "在完成后通过电子邮件发送命令输出。"
 
 msgid "September"
-msgstr ""
+msgstr "九月"
 
 msgid "Settings"
-msgstr ""
+msgstr "设置"
 
 msgid "Snapshot"
-msgstr ""
+msgstr "快照"
 
 msgid "Snapshot Jobs"
-msgstr ""
+msgstr "快照任务"
 
 msgid "Snapshot prefix"
-msgstr ""
+msgstr "快照前缀"
 
 msgid ""
 "Snapshots will be named <prefix>-YYYYMMDD-HHMMSS and stored in "
 "<mountpoint>/.snapshots/<subvolume>/."
 msgstr ""
+"快照将被命名为<prefix> -YYYYMMDD-HHMMSS 并存储在<mountpoint> /.snapshots/<subvolume>/ 。"
 
 msgid "Starting scrub ..."
-msgstr ""
+msgstr "开始清理中 ..."
 
 msgid "Subvolume"
-msgstr ""
+msgstr "子卷"
 
 msgid "Subvolumes"
-msgstr ""
+msgstr "子卷"
 
 msgid "Sunday"
-msgstr ""
+msgstr "星期天"
 
 msgid "The field should only contain * or a comma separated list of values."
-msgstr ""
+msgstr "该字段应仅包含 * 或以逗号分隔的值。"
 
 msgid ""
 "The filesystem or subvolume under which the new subvolume will be created."
-msgstr ""
+msgstr "将创建新子卷的文件系统或子卷。"
 
 msgid "The name must not contain a slash."
-msgstr ""
+msgstr "名称中不得含有斜杠。"
 
 msgid "The name of the new subvolume."
-msgstr ""
+msgstr "新子卷的名称。"
 
 msgid ""
 "The number of devices must be at least equal to the number of replicas."
-msgstr ""
+msgstr "设备的数量必须至少等于副本的数量。"
 
 msgid ""
 "The passphrase will be stored in /etc/bcachefs/keys/ readable only by root. "
 "It is used to automatically unlock this filesystem at boot."
-msgstr ""
+msgstr "密码将存储在 /etc/bcachefs/keys/ 中，仅 root 可读。它用于在启动时自动解锁此文件系统。"
 
 msgid "The passphrases do not match."
-msgstr ""
+msgstr "密码不符。"
 
 msgid "Thursday"
-msgstr ""
+msgstr "星期四"
 
 msgid "Time of execution"
-msgstr ""
+msgstr "执行时间"
 
 msgid "Tuesday"
-msgstr ""
+msgstr "星期二"
 
 msgid "Type"
-msgstr ""
+msgstr "类型"
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Unit"
-msgstr ""
+msgstr "单位"
 
 msgid "Updated scrub job."
-msgstr ""
+msgstr "已更新清理任务。"
 
 msgid "Updated snapshot job."
-msgstr ""
+msgstr "已更新快照任务。"
 
 msgid "Wednesday"
-msgstr ""
+msgstr "星期三"
 
 msgid "Weekly"
-msgstr ""
+msgstr "每周"
 
 msgid ""
 "Write data in-place when possible. Improves performance for databases and VM"
 " image storage. Implicitly disables checksums, compression, and encryption."
-msgstr ""
+msgstr "尽可能就地写入数据。提高数据库和虚拟机镜像存储的性能。默认禁用校验和、压缩和加密。"
 
 msgid "Yearly"
+msgstr "每年"
+
+msgid ""
+"bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ "
+"kernelVersion }}) is not supported — the DKMS module will not be installed. "
+"Upgrade your kernel and reboot to enable bcachefs."
 msgstr ""
 
 msgid "bcachefs-tools-release — stable builds (best for production use)"
-msgstr ""
+msgstr "bcachefs-tools-release — 稳定版本（最适合生产环境使用）"
 
 msgid ""
 "bcachefs-tools-snapshot — latest builds, updated often (best for testing and"
 " development)"
-msgstr ""
+msgstr "bcachefs-tools-snapshot — 最新版本，经常更新（最适合测试和开发）"
 
 msgid "days"
-msgstr ""
+msgstr "日"
 
 msgid "months"
-msgstr ""
+msgstr "月"
 
 msgid "snapshots"
-msgstr ""
+msgstr "快照"
 
 msgid "weeks"
-msgstr ""
+msgstr "周"
 
 msgid "years"
-msgstr ""
+msgstr "年"
