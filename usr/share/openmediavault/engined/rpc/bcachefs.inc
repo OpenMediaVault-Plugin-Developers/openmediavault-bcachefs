@@ -29,6 +29,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getSettings");
         $this->registerMethod("setSettings");
         $this->registerMethod("createFilesystem");
+        $this->registerMethod("getEmptyCandidates");
         $this->registerMethod("getFilesystemList");
         $this->registerMethod("getFilesystem");
         $this->registerMethod("enableAutoUnlock");
@@ -263,6 +264,56 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 chmod($keyFile, 0600);
             }
         });
+    }
+
+    public function getEmptyCandidates($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        if (false === ($devs = \OMV\System\Storage\StorageDevice::enumerateUnused())) {
+            throw new \OMV\Exception("Failed to get list of unused devices.");
+        }
+        $result = [];
+        $db = \OMV\Config\Database::getInstance();
+        foreach ($devs as $devv) {
+            $sd = \OMV\System\Storage\StorageDevice::getStorageDevice($devv);
+            if (is_null($sd) || !$sd->exists()) {
+                continue;
+            }
+            // Skip read-only and USB devices.
+            if ($sd->isReadOnly() || $sd->isUsb()) {
+                continue;
+            }
+            // Skip devices already referenced by a configured service.
+            if ($db->exists("conf.service", [
+                "operator" => "stringContains",
+                "arg0"     => "devicefile",
+                "arg1"     => $sd->getDeviceFile(),
+            ])) {
+                continue;
+            }
+            // Skip devices that already contain a filesystem.
+            if (false !== \OMV\System\Filesystem\Filesystem::hasFileSystem($sd->getDeviceFile())) {
+                continue;
+            }
+            // Prefer the stable by-id path over the kernel device name to
+            // avoid mixed naming when attaching or replacing devices.
+            $devfile = $sd->getDeviceFile();
+            if (!is_null($byId = $sd->getDeviceFileById())) {
+                $devfile = $byId;
+            }
+            $sn = $sd->getSerialNumber();
+            $result[] = [
+                "devicefile"   => $devfile,
+                "size"         => $sd->getSize(),
+                "vendor"       => $sd->getVendor(),
+                "serialnumber" => $sn,
+                "description"  => $sd->getDescription(),
+                "label"        => $sn
+                                    ? $sd->getDescription() . ", S/N: $sn"
+                                    : $sd->getDescription(),
+            ];
+        }
+        return $result;
     }
 
     /**

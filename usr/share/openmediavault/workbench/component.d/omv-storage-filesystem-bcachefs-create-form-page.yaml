@@ -33,10 +33,9 @@ data:
         textField: description
         store:
           proxy:
-            service: FileSystemMgmt
+            service: Bcachefs
             get:
-              method: getCandidatesBg
-              task: true
+              method: getEmptyCandidates
           sorters:
             - dir: asc
               prop: devicefile
@@ -101,10 +100,9 @@ data:
         textField: description
         store:
           proxy:
-            service: FileSystemMgmt
+            service: Bcachefs
             get:
-              method: getCandidatesBg
-              task: true
+              method: getEmptyCandidates
           sorters:
             - dir: asc
               prop: devicefile
@@ -135,10 +133,9 @@ data:
         textField: description
         store:
           proxy:
-            service: FileSystemMgmt
+            service: Bcachefs
             get:
-              method: getCandidatesBg
-              task: true
+              method: getEmptyCandidates
           sorters:
             - dir: asc
               prop: devicefile
@@ -168,10 +165,9 @@ data:
         textField: description
         store:
           proxy:
-            service: FileSystemMgmt
+            service: Bcachefs
             get:
-              method: getCandidatesBg
-              task: true
+              method: getEmptyCandidates
           sorters:
             - dir: asc
               prop: devicefile
