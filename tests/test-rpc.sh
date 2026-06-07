@@ -249,6 +249,7 @@ assert_rpc "getSubvolumes (empty)"   "Bcachefs" "getSubvolumes"      "{}"
 assert_rpc "getFilesystems (empty)"  "Bcachefs" "getFilesystems"     "{}"
 assert_rpc "getFilesystemList (empty)" "Bcachefs" "getFilesystemList" "$LIST_PARAMS"
 assert_rpc "getSubvolumeList (empty)"  "Bcachefs" "getSubvolumeList"  "{}"
+assert_rpc "getDeviceList (empty)"     "Bcachefs" "getDeviceList"      "{}"
 assert_rpc "getSnapshotJobList (empty)" "Bcachefs" "getSnapshotJobList" "$LIST_PARAMS"
 assert_rpc "getScrubJobList (empty)"    "Bcachefs" "getScrubJobList"    "$LIST_PARAMS"
 
@@ -281,6 +282,7 @@ print(json.dumps({
     'replicas':    1,
     'compression': 'lz4',
     'checksum':    'crc32c',
+    'erasurecode': False,
     'nocow':       False,
     'encrypted':   False,
     'passphrase':  '',
@@ -372,6 +374,48 @@ assert_rpc_fails "getFilesystem — unknown UUID" "Bcachefs" "getFilesystem" \
     '{"uuid":"00000000-0000-0000-0000-000000000000"}'
 
 # ===========================================================================
+section "Filesystem — usage, options & device list (read)"
+# ===========================================================================
+
+assert_rpc "getUsage" "Bcachefs" "getUsage" \
+    "{\"uuid\":\"$FS_UUID\"}" "$FS_UUID" >/dev/null
+assert_rpc "getFilesystemOptions" "Bcachefs" "getFilesystemOptions" \
+    "{\"uuid\":\"$FS_UUID\"}" "compression" >/dev/null
+assert_rpc "getDeviceList" "Bcachefs" "getDeviceList" \
+    "{}" "$FS_UUID" >/dev/null
+
+# Verify the device list reports exactly the devices that make up the fs.
+DEV_LIST=$(rpc "Bcachefs" "getDeviceList" "{}" 2>/dev/null || echo "[]")
+DEV_COUNT=$(echo "$DEV_LIST" | python3 -c "
+import sys,json
+rows=json.load(sys.stdin)
+print(sum(1 for r in rows if r.get('filesystem') == '$FS_UUID'))" 2>/dev/null || echo 0)
+if [ "$DEV_COUNT" -eq "${#DEVICES[@]}" ]; then
+    _pass "getDeviceList — reports ${#DEVICES[@]} device(s) for filesystem"
+else
+    _fail "getDeviceList — expected ${#DEVICES[@]} device(s), got $DEV_COUNT"
+fi
+
+assert_rpc_fails "getUsage — unknown UUID" "Bcachefs" "getUsage" \
+    '{"uuid":"00000000-0000-0000-0000-000000000000"}'
+
+# setFilesystemOptions writes to sysfs; only available on kernels that expose
+# the per-filesystem options tree.
+OPTS_DIR="/sys/fs/bcachefs/${FS_UUID}/options"
+if [ -d "$OPTS_DIR" ]; then
+    assert_rpc "setFilesystemOptions — compression=zstd" "Bcachefs" \
+        "setFilesystemOptions" \
+        "{\"uuid\":\"$FS_UUID\",\"compression\":\"zstd\"}" >/dev/null
+    assert_rpc "getFilesystemOptions — compression now zstd" "Bcachefs" \
+        "getFilesystemOptions" "{\"uuid\":\"$FS_UUID\"}" "zstd" >/dev/null
+    # Restore the original compression so later assertions are unaffected.
+    rpc "Bcachefs" "setFilesystemOptions" \
+        "{\"uuid\":\"$FS_UUID\",\"compression\":\"lz4\"}" &>/dev/null || true
+else
+    info "Skipping setFilesystemOptions — $OPTS_DIR not present"
+fi
+
+# ===========================================================================
 section "Subvolumes — create"
 # ===========================================================================
 
@@ -398,10 +442,11 @@ root=next((r for r in rows if r.get('filesystem','') == '$FS_UUID'
            and r.get('relpath','') == '(root)'), None)
 assert root is not None, 'test filesystem root not found'
 assert root.get('inuse') == True, 'expected root inuse=true'
+assert 'usage' in root, 'expected usage field present'
 " 2>/dev/null; then
-    _pass "getSubvolumeList — test filesystem root present, inuse=true"
+    _pass "getSubvolumeList — test filesystem root present, inuse=true, has usage"
 else
-    _fail "getSubvolumeList — test filesystem root not found"
+    _fail "getSubvolumeList — test filesystem root not found / missing usage field"
 fi
 
 assert_rpc "getSubvolumes (with subvol)" "Bcachefs" "getSubvolumes" \
@@ -781,6 +826,37 @@ print(json.dumps({
 }))")"
 
 # ===========================================================================
+section "Devices — set-state, evacuate, remove, add"
+# ===========================================================================
+
+# These tests mutate filesystem membership, so they run on the single-device
+# filesystem (which spans all supplied devices) before the tiering test
+# reformats everything. They require a spare member to remove/re-add.
+if [ ${#DEVICES[@]} -lt 2 ]; then
+    info "Skipping device add/remove/state tests — requires >=2 devices (got ${#DEVICES[@]})"
+else
+    LAST_DEV="${DEVICES[$((${#DEVICES[@]} - 1))]}"
+    info "Operating on member device: $LAST_DEV"
+
+    # Reversible state changes (do not alter membership).
+    assert_rpc "setDeviceState — ro" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"ro\"}" >/dev/null
+    assert_rpc "setDeviceState — rw" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"rw\"}" >/dev/null
+
+    # Move data off, remove from the filesystem, then add it back.
+    assert_rpc_bg "evacuateDevice" "Bcachefs" "evacuateDevice" \
+        "{\"devicefile\":\"$LAST_DEV\"}"
+    assert_rpc_bg "removeDevice" "Bcachefs" "removeDevice" \
+        "{\"devicefile\":\"$LAST_DEV\"}"
+    assert_rpc_bg "addDevice (re-add)" "Bcachefs" "addDevice" \
+        "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$LAST_DEV\"}"
+
+    assert_rpc_fails "setDeviceState — invalid state" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"bogus\"}"
+fi
+
+# ===========================================================================
 section "Filesystem — create with device label groups (tiering)"
 # ===========================================================================
 
@@ -815,6 +891,7 @@ print(json.dumps({
     'background_target': 'hdd',
     'compression':       'none',
     'checksum':          'crc32c',
+    'erasurecode':       False,
     'nocow':             False,
     'encrypted':         False,
     'passphrase':        '',
@@ -862,6 +939,69 @@ print(json.dumps({
         _pass "mount tiering filesystem at $MNT"
     else
         _fail "mount tiering filesystem at $MNT"
+    fi
+fi
+
+# ===========================================================================
+section "Filesystem — create with erasure coding"
+# ===========================================================================
+
+# Erasure coding stripes data across several devices, so it needs at least 3.
+if [ ${#DEVICES[@]} -lt 3 ]; then
+    info "Skipping erasure coding test — requires >=3 devices (got ${#DEVICES[@]})"
+else
+    # Tear down the previous (tiering) filesystem so we can reformat.
+    if [ -n "$MNT" ] && mountpoint -q "$MNT" 2>/dev/null; then
+        info "Unmounting $MNT for erasure coding test"
+        umount -l "$MNT" 2>/dev/null || true
+    fi
+    wipefs -a "${DEVICES[@]}" 2>/dev/null || true
+
+    EC_PARAMS=$(python3 -c "
+import json
+print(json.dumps({
+    'label':       'omvbcachefsec',
+    'replicas':    1,
+    'compression': 'none',
+    'checksum':    'crc32c',
+    'erasurecode': True,
+    'nocow':       False,
+    'encrypted':   False,
+    'passphrase':  '',
+    'autounlock':  False,
+    'devicefiles': '$DEVICEFILES_CSV',
+}))
+")
+
+    assert_rpc_bg "createFilesystem (erasure coding)" "Bcachefs" \
+        "createFilesystem" "$EC_PARAMS"
+
+    info "Reading superblock from ${DEVICES[0]} ..."
+    EC_SUPER=$(/usr/sbin/bcachefs show-super "${DEVICES[0]}" 2>/dev/null || true)
+    FS_UUID=$(echo "$EC_SUPER" | awk '/^External UUID:/ {print $NF}')
+
+    if [ -n "$FS_UUID" ]; then
+        _pass "createFilesystem (erasure coding) — UUID detected: $FS_UUID"
+    else
+        _fail "createFilesystem (erasure coding) — could not read UUID from superblock"
+    fi
+
+    if echo "$EC_SUPER" | grep -qi "erasure_code"; then
+        _pass "createFilesystem (erasure coding) — erasure_code enabled in superblock"
+    else
+        _fail "createFilesystem (erasure coding) — erasure_code not found in superblock"
+    fi
+
+    # Mount so cleanup unmounts/wipes this filesystem too.
+    if [ -n "$FS_UUID" ]; then
+        MNT="/srv/dev-disk-by-uuid-${FS_UUID}"
+        mkdir -p "$MNT"
+        MOUNT_DEVS=$(IFS=:; echo "${DEVICES[*]}")
+        if mount -t bcachefs "$MOUNT_DEVS" "$MNT" 2>/dev/null; then
+            _pass "mount erasure coding filesystem at $MNT"
+        else
+            _fail "mount erasure coding filesystem at $MNT"
+        fi
     fi
 fi
 
