@@ -31,6 +31,10 @@ data:
         flexGrow: 1
         sortable: true
         cellTemplateName: checkIcon
+      - name: _("Usage")
+        prop: usage
+        flexGrow: 1
+        sortable: true
       - name: _("In Use")
         prop: inuse
         flexGrow: 1

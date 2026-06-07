@@ -1,0 +1,33 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-filesystems-usage-form-page
+  type: formPage
+  config:
+    request:
+      service: Bcachefs
+      get:
+        method: getUsage
+        params:
+          uuid: "{{ _routeParams.uuid }}"
+    fields:
+      - type: textInput
+        name: label
+        label: _("Label")
+        disabled: true
+      - type: textInput
+        name: mountpoint
+        label: _("Mountpoint")
+        disabled: true
+      - type: textarea
+        name: report
+        label: _("Usage")
+        disabled: true
+        rows: 24
+        hint: _("Output of 'bcachefs fs usage' (per-device capacity, replication and degraded data), with reconcile/rebalance status when supported.")
+    buttons:
+      - template: cancel
+        text: _("Back")
+        execute:
+          type: url
+          url: /storage/bcachefs/filesystems

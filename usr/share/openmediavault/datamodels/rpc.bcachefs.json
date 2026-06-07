@@ -122,6 +122,10 @@
           "type": "boolean",
           "required": false
         },
+        "erasurecode": {
+          "type": "boolean",
+          "required": false
+        },
         "group1name": {
           "type": "string",
           "required": false
@@ -149,6 +153,72 @@
         "devicefiles": {
           "type": "string",
           "required": false
+        }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setfilesystemoptions",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string", "required": true },
+        "compression": {
+          "type": "string",
+          "enum": ["none", "lz4", "gzip", "zstd"],
+          "required": false
+        },
+        "background_compression": {
+          "type": "string",
+          "enum": ["none", "lz4", "gzip", "zstd"],
+          "required": false
+        },
+        "foreground_target": { "type": "string", "required": false },
+        "background_target": { "type": "string", "required": false },
+        "promote_target": { "type": "string", "required": false },
+        "data_replicas": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "required": false
+        }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.adddevice",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string", "required": true },
+        "devicefile": { "type": "string", "required": true },
+        "label": { "type": "string", "required": false }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.devicefile",
+    "params": {
+      "type": "object",
+      "properties": {
+        "devicefile": { "type": "string", "required": true }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setdevicestate",
+    "params": {
+      "type": "object",
+      "properties": {
+        "devicefile": { "type": "string", "required": true },
+        "state": {
+          "type": "string",
+          "enum": ["rw", "ro", "failed", "spare"],
+          "required": true
         }
       }
     }

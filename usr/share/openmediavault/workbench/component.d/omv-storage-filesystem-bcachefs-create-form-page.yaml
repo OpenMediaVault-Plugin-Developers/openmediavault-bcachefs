@@ -245,6 +245,11 @@ data:
       - type: divider
         title: _("Advanced")
       - type: checkbox
+        name: erasurecode
+        label: _("Erasure coding")
+        value: false
+        hint: _("Enable erasure coding (parity-based redundancy, RAID5/6-style) for more efficient space usage than full replicas. Requires at least 3 devices. Combine with replicas for metadata protection.")
+      - type: checkbox
         name: nocow
         label: _("Disable COW")
         value: false
@@ -343,6 +348,7 @@ data:
                   background_target: '{{ background_target }}'
                   compression: '{{ compression }}'
                   checksum: '{{ checksum }}'
+                  erasurecode: '{{ erasurecode }}'
                   nocow: '{{ nocow }}'
                   encrypted: '{{ encrypted }}'
                   passphrase: '{{ passphrase }}'

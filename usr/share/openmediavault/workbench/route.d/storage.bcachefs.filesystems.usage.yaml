@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/filesystems/usage/:uuid"
+  title: _("Usage")
+  component: omv-storage-bcachefs-filesystems-usage-form-page

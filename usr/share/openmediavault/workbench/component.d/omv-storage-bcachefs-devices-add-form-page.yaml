@@ -1,0 +1,65 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-devices-add-form-page
+  type: formPage
+  config:
+    hints:
+      - type: info
+        text: _("The selected device will be wiped and added to the chosen filesystem. If a device is not listed, it already contains a file system or partitions; wipe it first under Storage > Disks.")
+        dismissible: true
+        stateId: 2f1c7a64-1b9e-4d2a-9c3e-7a0b6c5d4e3f
+    fields:
+      - type: select
+        name: uuid
+        label: _("Filesystem")
+        placeholder: _("Select a filesystem ...")
+        store:
+          proxy:
+            service: Bcachefs
+            get:
+              method: getFilesystems
+        validators:
+          required: true
+      - type: select
+        name: devicefile
+        label: _("Device")
+        placeholder: _("Select a device ...")
+        valueField: devicefile
+        textField: description
+        store:
+          proxy:
+            service: Bcachefs
+            get:
+              method: getEmptyCandidates
+          sorters:
+            - dir: asc
+              prop: devicefile
+        validators:
+          required: true
+      - type: textInput
+        name: label
+        label: _("Label group")
+        value: ""
+        hint: _("Optional label group to place this device in (e.g. 'hdd.hdd3') for tiering. Leave empty for no group.")
+    buttons:
+      - template: submit
+        text: _("Add")
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Add device")
+              startOnInit: true
+              request:
+                service: Bcachefs
+                method: addDevice
+                params:
+                  uuid: '{{ uuid }}'
+                  devicefile: '{{ devicefile }}'
+                  label: '{{ label }}'
+            successUrl: /storage/bcachefs/devices
+      - template: cancel
+        execute:
+          type: url
+          url: /storage/bcachefs/devices

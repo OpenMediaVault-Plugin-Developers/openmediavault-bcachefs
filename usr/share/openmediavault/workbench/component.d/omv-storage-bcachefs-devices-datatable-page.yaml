@@ -1,0 +1,166 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-devices-datatable-page
+  type: datatablePage
+  config:
+    autoReload: false
+    hasSearchField: true
+    stateId: c7d8e9f0-a1b2-3456-cdef-7890abcdef12
+    store:
+      proxy:
+        service: Bcachefs
+        get:
+          method: getDeviceList
+    columns:
+      - name: _("Filesystem")
+        prop: fslabel
+        flexGrow: 2
+        sortable: true
+      - name: _("Device")
+        prop: devicefile
+        flexGrow: 3
+        sortable: true
+        cellTemplateName: copyToClipboard
+      - name: _("Label group")
+        prop: group
+        flexGrow: 2
+        sortable: true
+      - name: _("State")
+        prop: state
+        flexGrow: 1
+        sortable: true
+        cellTemplateName: chip
+        cellTemplateConfig:
+          map:
+            rw:
+              value: _("rw")
+              class: omv-background-color-pair-green
+            ro:
+              value: _("ro")
+              class: omv-background-color-pair-yellow
+            failed:
+              value: _("failed")
+              class: omv-background-color-pair-red
+            spare:
+              value: _("spare")
+              class: omv-background-color-pair-blue
+      - name: _("Size")
+        prop: size
+        flexGrow: 1
+        sortable: true
+      - name: _("Durability")
+        prop: durability
+        flexGrow: 1
+        sortable: true
+      - name: _("Mountpoint")
+        prop: mountpoint
+        flexGrow: 2
+        sortable: true
+        hidden: true
+    actions:
+      - type: iconButton
+        icon: mdi:harddisk-plus
+        tooltip: _("Add device")
+        execute:
+          type: url
+          url: "/storage/bcachefs/devices/add"
+      - type: iconButton
+        icon: mdi:play-circle-outline
+        tooltip: _("Set read-write")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: ne
+              arg0:
+                prop: state
+              arg1: "rw"
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: setDeviceState
+            params:
+              devicefile: "{{ _selected[0].devicefile }}"
+              state: "rw"
+      - type: iconButton
+        icon: mdi:pause-circle-outline
+        tooltip: _("Set read-only")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: ne
+              arg0:
+                prop: state
+              arg1: "ro"
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: setDeviceState
+            params:
+              devicefile: "{{ _selected[0].devicefile }}"
+              state: "ro"
+      - type: iconButton
+        icon: mdi:alert-circle-outline
+        tooltip: _("Set failed")
+        confirmationDialogConfig:
+          template: confirmation-danger
+          message: _("Marking a device as failed tells bcachefs to stop using it. Make sure the filesystem still has enough replicas/devices to keep your data accessible. Continue?")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: ne
+              arg0:
+                prop: state
+              arg1: "failed"
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: setDeviceState
+            params:
+              devicefile: "{{ _selected[0].devicefile }}"
+              state: "failed"
+      - type: iconButton
+        icon: mdi:export
+        tooltip: _("Evacuate (move data off)")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Evacuate device")
+              startOnInit: true
+              request:
+                service: Bcachefs
+                method: evacuateDevice
+                params:
+                  devicefile: "{{ _selected[0].devicefile }}"
+            successUrl: "/storage/bcachefs/devices"
+      - type: iconButton
+        icon: mdi:minus-circle-outline
+        tooltip: _("Remove device")
+        confirmationDialogConfig:
+          template: confirmation-danger
+          message: _("Permanently remove this device from the filesystem? Its data is migrated to the remaining devices first, which can take a long time and requires enough free space.")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Remove device (data is migrated off first)")
+              startOnInit: false
+              request:
+                service: Bcachefs
+                method: removeDevice
+                params:
+                  devicefile: "{{ _selected[0].devicefile }}"
+            successUrl: "/storage/bcachefs/devices"

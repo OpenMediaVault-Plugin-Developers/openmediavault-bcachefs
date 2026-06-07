@@ -39,6 +39,16 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("deleteSubvolume");
         $this->registerMethod("getSubvolumes");
         $this->registerMethod("getFilesystems");
+        // Filesystem usage / options
+        $this->registerMethod("getUsage");
+        $this->registerMethod("getFilesystemOptions");
+        $this->registerMethod("setFilesystemOptions");
+        // Device management
+        $this->registerMethod("getDeviceList");
+        $this->registerMethod("addDevice");
+        $this->registerMethod("removeDevice");
+        $this->registerMethod("evacuateDevice");
+        $this->registerMethod("setDeviceState");
         // Snapshot jobs
         $this->registerMethod("getSnapshotJobList");
         $this->registerMethod("getSnapshotJob");
@@ -113,6 +123,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $params['encrypted']    = filter_var($params['encrypted']    ?? false, FILTER_VALIDATE_BOOLEAN);
         $params['autounlock']   = filter_var($params['autounlock']   ?? false, FILTER_VALIDATE_BOOLEAN);
         $params['enablegroups'] = filter_var($params['enablegroups'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $params['erasurecode']  = filter_var($params['erasurecode']  ?? false, FILTER_VALIDATE_BOOLEAN);
         $params['replicas']     = intval($params['replicas'] ?? 1);
         $this->validateMethodParams($params, "rpc.bcachefs.createfilesystem");
 
@@ -198,6 +209,9 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             }
             if (!empty($params['replicas'])) {
                 $cmdArgs[] = sprintf("--replicas=%d", intval($params['replicas']));
+            }
+            if (!empty($params['erasurecode'])) {
+                $cmdArgs[] = "--erasure_code";
             }
             if (!empty($params['foreground_target'])) {
                 $cmdArgs[] = sprintf("--foreground_target=%s", $params['foreground_target']);
@@ -446,6 +460,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 "readonly"   => false,
                 "issnapshot" => false,
                 "inuse"      => true,
+                "usage"      => "",
             ];
 
             $cmd = new \OMV\System\Process("bcachefs",
@@ -471,6 +486,9 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                     $isSnap    = !empty($sv['snapshot'] ?? $sv['flags']['snapshot'] ?? false)
                                   || str_starts_with($relpath, '.snapshots/');
                     $isRO      = !empty($sv['ro'] ?? $sv['readonly'] ?? $sv['flags']['ro'] ?? false);
+                    // Newer bcachefs-tools report per-subvolume/snapshot disk
+                    // usage; surface it when present (key name varies by version).
+                    $usageRaw  = $sv['usage'] ?? $sv['disk_usage'] ?? $sv['size'] ?? null;
                     $result[]  = [
                         "path"       => $absPath,
                         "relpath"    => $relpath,
@@ -479,6 +497,9 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                         "readonly"   => $isRO,
                         "issnapshot" => $isSnap,
                         "inuse"      => $isInUse($absPath),
+                        "usage"      => is_numeric($usageRaw)
+                                          ? binary_format((float)$usageRaw)
+                                          : (string)($usageRaw ?? ""),
                     ];
                 }
             } else {
@@ -498,6 +519,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                         "readonly"   => false,
                         "issnapshot" => false,
                         "inuse"      => $isInUse($absPath),
+                        "usage"      => "",
                     ];
                 }
                 // Scan .snapshots/<subvol>/<timestamp-prefix>/ for snapshots.
@@ -524,6 +546,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                                 "readonly"   => false,
                                 "issnapshot" => true,
                                 "inuse"      => $isInUse($snapPath),
+                                "usage"      => "",
                             ];
                         }
                     }
@@ -644,6 +667,260 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             ];
         }
         return $result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Filesystem usage / options
+    // -------------------------------------------------------------------------
+
+    /**
+     * Return the human-readable `bcachefs fs usage` report for a filesystem,
+     * with reconcile/rebalance status appended when the running tools support
+     * it. Used by the read-only usage/health view.
+     */
+    public function getUsage($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.getfilesystem");
+        $fs  = $this->getFsByUuid($params['uuid']);
+        $mnt = $fs['mountpoint'];
+
+        $out = [];
+        exec('/usr/sbin/bcachefs fs usage -h ' . escapeshellarg($mnt) .
+            ' 2>&1', $out);
+        $report = implode("\n", $out);
+
+        // Reconcile replaces the older rebalance reporting; only present on
+        // newer tools, so ignore failures.
+        $rec = [];
+        exec('/usr/sbin/bcachefs reconcile status ' . escapeshellarg($mnt) .
+            ' 2>/dev/null', $rec, $rc);
+        if ($rc === 0 && !empty($rec)) {
+            $report .= "\n\n=== Reconcile status ===\n" . implode("\n", $rec);
+        }
+
+        return [
+            "uuid"       => $fs['uuid'],
+            "label"      => $fs['label'] ?? "",
+            "mountpoint" => $mnt,
+            "report"     => $report,
+        ];
+    }
+
+    /**
+     * Read the current IO-path options for a mounted filesystem from sysfs.
+     * Changing these triggers bcachefs reconcile to migrate existing data.
+     */
+    public function getFilesystemOptions($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.getfilesystem");
+        $fs   = $this->getFsByUuid($params['uuid']);
+        $uuid = $fs['uuid'];
+        $base = sprintf("/sys/fs/bcachefs/%s/options/", $uuid);
+        $read = function(string $name) use ($base): string {
+            $f = $base . $name;
+            return is_readable($f) ? trim((string)@file_get_contents($f)) : "";
+        };
+        // The compression option may carry a level suffix (e.g. "zstd:3");
+        // the select field only knows the algorithm name.
+        $compression = explode(':', $read('compression'))[0];
+        if ($compression === '') {
+            $compression = 'none';
+        }
+        return [
+            "uuid"                   => $uuid,
+            "label"                  => $fs['label'] ?? "",
+            "mountpoint"             => $fs['mountpoint'],
+            "compression"            => $compression,
+            "background_compression" => explode(':', $read('background_compression'))[0] ?: 'none',
+            "foreground_target"      => $read('foreground_target'),
+            "background_target"      => $read('background_target'),
+            "promote_target"         => $read('promote_target'),
+            "data_replicas"          => intval($read('data_replicas')) ?: 1,
+        ];
+    }
+
+    /**
+     * Apply changed IO-path options to a mounted filesystem via sysfs.
+     * bcachefs persists these to the superblock automatically.
+     */
+    public function setFilesystemOptions($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.setfilesystemoptions");
+        $base   = sprintf("/sys/fs/bcachefs/%s/options/", $params['uuid']);
+        $errors = [];
+        $write  = function(string $name, $value) use ($base, &$errors) {
+            if ($value === '' || $value === null) {
+                return; // Leave blank fields unchanged.
+            }
+            if (false === @file_put_contents($base . $name, (string)$value)) {
+                $errors[] = sprintf("%s=%s", $name, $value);
+            }
+        };
+        $write('compression',            $params['compression'] ?? '');
+        $write('background_compression', $params['background_compression'] ?? '');
+        $write('foreground_target',      $params['foreground_target'] ?? '');
+        $write('background_target',      $params['background_target'] ?? '');
+        $write('promote_target',         $params['promote_target'] ?? '');
+        if (isset($params['data_replicas'])) {
+            $write('data_replicas', (string)intval($params['data_replicas']));
+        }
+        if (!empty($errors)) {
+            throw new \OMV\Exception(
+                "Failed to apply option(s): %s. Target group names must " .
+                "already exist on the filesystem.", implode(', ', $errors));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Device management
+    // -------------------------------------------------------------------------
+
+    /**
+     * List every member device across all mounted bcachefs filesystems, with
+     * its label group, state and size parsed from the superblock.
+     */
+    public function getDeviceList($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $result = [];
+        foreach ($this->getMountedBcachefsFilesystems() as $fs) {
+            $devices = $fs['devices'];
+
+            // Read the superblock once from whichever device responds first.
+            $superText = "";
+            foreach ($devices as $d) {
+                $lines = [];
+                exec('/usr/sbin/bcachefs show-super ' . escapeshellarg($d) .
+                    ' 2>/dev/null', $lines);
+                if (!empty($lines)) {
+                    $superText = implode("\n", $lines);
+                    break;
+                }
+            }
+            $members = $this->parseSuperMembers($superText);
+
+            // Members are listed in member-index order; the device list from
+            // /proc/mounts is assumed to follow the same order. Operations
+            // always target the real device path shown in the row.
+            $i = 0;
+            foreach ($devices as $d) {
+                $mem = $members[$i] ?? [
+                    'label' => '', 'state' => '', 'size' => '', 'durability' => '',
+                ];
+                $result[] = [
+                    "devicefile" => $d,
+                    "filesystem" => $fs['uuid'],
+                    "fslabel"    => $this->fsDisplayName($fs),
+                    "mountpoint" => $fs['mountpoint'],
+                    "group"      => $mem['label'],
+                    "state"      => $mem['state'] !== '' ? $mem['state'] : 'unknown',
+                    "size"       => $mem['size'],
+                    "durability" => $mem['durability'],
+                ];
+                $i++;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Add a new (empty) device to an existing filesystem, optionally placing it
+     * in a label group. Runs in the background as data may be rebalanced.
+     */
+    public function addDevice($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.adddevice");
+        $fs  = $this->getFsByUuid($params['uuid']);
+        $dev = $params['devicefile'];
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename)
+          use ($fs, $dev, $params) {
+            $sd = \OMV\System\Storage\StorageDevice::assertGetStorageDevice($dev);
+            $sd->wipe();
+
+            // The device was just wiped, so overwrite any residual signature
+            // (e.g. a bcachefs superblock that wipefs does not recognise).
+            $cmdArgs = ["device", "add", "--force"];
+            if (!empty($params['label'])) {
+                $cmdArgs[] = sprintf("--label=%s", escapeshellarg($params['label']));
+            }
+            $cmdArgs[] = escapeshellarg($fs['mountpoint']);
+            $cmdArgs[] = escapeshellarg($dev);
+
+            $cmd = new \OMV\System\Process("bcachefs", $cmdArgs);
+            $cmd->setRedirect2to1();
+            if (0 !== ($exitStatus = $this->exec($cmd, $output,
+                    $bgOutputFilename))) {
+                throw new \OMV\ExecException($cmd, $output, $exitStatus);
+            }
+        });
+    }
+
+    /**
+     * Remove a device from its filesystem. Data is migrated off first, so this
+     * runs in the background.
+     */
+    public function removeDevice($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.devicefile");
+        $dev = $params['devicefile'];
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename)
+          use ($dev) {
+            $cmd = new \OMV\System\Process("bcachefs",
+                ["device", "remove", escapeshellarg($dev)]);
+            $cmd->setRedirect2to1();
+            if (0 !== ($exitStatus = $this->exec($cmd, $output,
+                    $bgOutputFilename))) {
+                throw new \OMV\ExecException($cmd, $output, $exitStatus);
+            }
+        });
+    }
+
+    /**
+     * Move all data off a device without removing it from the filesystem.
+     * Runs in the background.
+     */
+    public function evacuateDevice($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.devicefile");
+        $dev = $params['devicefile'];
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename)
+          use ($dev) {
+            $cmd = new \OMV\System\Process("bcachefs",
+                ["device", "evacuate", escapeshellarg($dev)]);
+            $cmd->setRedirect2to1();
+            if (0 !== ($exitStatus = $this->exec($cmd, $output,
+                    $bgOutputFilename))) {
+                throw new \OMV\ExecException($cmd, $output, $exitStatus);
+            }
+        });
+    }
+
+    /**
+     * Change a device's state (rw, ro, failed, spare).
+     */
+    public function setDeviceState($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.setdevicestate");
+        $state = $params['state'];
+        $dev   = $params['devicefile'];
+        $cmdArgs = ["device", "set-state"];
+        // Forcing past the safety check is required to mark a device failed or
+        // spare while it still holds data.
+        if (in_array($state, ['failed', 'spare'], true)) {
+            $cmdArgs[] = "--force";
+        }
+        $cmdArgs[] = $state;
+        $cmdArgs[] = escapeshellarg($dev);
+        $cmd = new \OMV\System\Process("bcachefs", $cmdArgs);
+        $cmd->setRedirect2to1();
+        $cmd->execute();
     }
 
     // -------------------------------------------------------------------------
@@ -885,6 +1162,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 "uuid"        => $uuid,
                 "mountpoint"  => $mnt,
                 "device"      => $firstDevice,
+                "devices"     => $allDevices,
                 "devicecount" => count($allDevices),
                 "label"       => $label,
                 "encrypted"   => $encrypted,
@@ -901,5 +1179,53 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
     private function fsDisplayName(array $fs): string
     {
         return $fs['label'] ?? substr($fs['uuid'], 0, 8);
+    }
+
+    /**
+     * Look up a mounted filesystem entry by UUID, or throw if not found.
+     */
+    private function getFsByUuid(string $uuid): array
+    {
+        foreach ($this->getMountedBcachefsFilesystems() as $fs) {
+            if ($fs['uuid'] === $uuid) {
+                return $fs;
+            }
+        }
+        throw new \OMV\Exception("Filesystem '%s' not found.", $uuid);
+    }
+
+    /**
+     * Parse the per-device members block of `bcachefs show-super` output into
+     * an array indexed by member number, each with label, state, size and
+     * durability. Fields are only captured once a "Device:" header has been
+     * seen so the filesystem-level Label line is not mistaken for a member.
+     */
+    private function parseSuperMembers(string $superText): array
+    {
+        $members = [];
+        $idx     = null;
+        foreach (preg_split('/\r?\n/', $superText) as $line) {
+            if (preg_match('/^\s*Device:\s+(\d+)\s*$/', $line, $m)) {
+                $idx = intval($m[1]);
+                $members[$idx] = [
+                    'label' => '', 'state' => '', 'size' => '', 'durability' => '',
+                ];
+                continue;
+            }
+            if ($idx === null) {
+                continue;
+            }
+            if (preg_match('/^\s*Label:\s*(.+?)\s*$/', $line, $m)) {
+                $members[$idx]['label'] =
+                    ($m[1] === '(none)') ? '' : $m[1];
+            } elseif (preg_match('/^\s*Size:\s*(.+?)\s*$/', $line, $m)) {
+                $members[$idx]['size'] = $m[1];
+            } elseif (preg_match('/^\s*Durability:\s*(.+?)\s*$/', $line, $m)) {
+                $members[$idx]['durability'] = $m[1];
+            } elseif (preg_match('/^\s*State:\s*(.+?)\s*$/', $line, $m)) {
+                $members[$idx]['state'] = $m[1];
+            }
+        }
+        return $members;
     }
 }

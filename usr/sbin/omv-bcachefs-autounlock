@@ -11,6 +11,15 @@ if [ ! -d "$KEYS_DIR" ]; then
     exit 0
 fi
 
+# Detect whether this bcachefs-tools build supports `wait-devices` (added in
+# bcachefs-tools 1.38.1). When available we use it to wait for all member
+# devices of a multi-device filesystem to appear before unlocking, avoiding
+# boot-time races.
+wait_devices_supported=0
+if /usr/sbin/bcachefs wait-devices --help >/dev/null 2>&1; then
+    wait_devices_supported=1
+fi
+
 for keyfile in "$KEYS_DIR"/*.key; do
     [ -f "$keyfile" ] || continue
 
@@ -20,6 +29,14 @@ for keyfile in "$KEYS_DIR"/*.key; do
     if [ ! -e "$device" ]; then
         echo "bcachefs-autounlock: device $device not found, skipping" >&2
         continue
+    fi
+
+    # Wait for all member devices of the (possibly multi-device) filesystem to
+    # be present before attempting to unlock. Bounded so a missing/failed
+    # device cannot stall boot indefinitely.
+    if [ "$wait_devices_supported" -eq 1 ]; then
+        timeout 30 /usr/sbin/bcachefs wait-devices "$device" 2>/dev/null || \
+            echo "bcachefs-autounlock: wait-devices timed out for $uuid, continuing" >&2
     fi
 
     if /usr/sbin/bcachefs unlock "$device" < "$keyfile" 2>/dev/null; then

@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/devices"
+  title: _("Devices")
+  component: omv-storage-bcachefs-devices-datatable-page

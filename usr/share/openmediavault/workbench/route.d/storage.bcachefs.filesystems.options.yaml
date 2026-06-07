@@ -1,0 +1,7 @@
+version: "1.0"
+type: route
+data:
+  url: "/storage/bcachefs/filesystems/options/:uuid"
+  title: _("Edit Options")
+  editing: true
+  component: omv-storage-bcachefs-filesystems-options-form-page

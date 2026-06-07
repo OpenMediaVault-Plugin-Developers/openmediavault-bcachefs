@@ -49,6 +49,28 @@ data:
         sortable: true
         cellTemplateName: copyToClipboard
     actions:
+      - template: create
+        execute:
+          type: url
+          url: "/storage/filesystems/bcachefs/create"
+      - type: iconButton
+        icon: mdi:chart-box-outline
+        tooltip: _("Usage")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: url
+          url: "/storage/bcachefs/filesystems/usage/{{ _selected[0].uuid }}"
+      - type: iconButton
+        icon: mdi:tune
+        tooltip: _("Edit options")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: url
+          url: "/storage/bcachefs/filesystems/options/{{ _selected[0].uuid }}"
       - type: iconButton
         icon: mdi:lock-open-outline
         tooltip: _("Enable auto-unlock")
@@ -65,6 +87,9 @@ data:
       - type: iconButton
         icon: mdi:lock-outline
         tooltip: _("Disable auto-unlock")
+        confirmationDialogConfig:
+          template: confirmation
+          message: _("Do you really want to disable auto-unlock? The key file will be deleted and the filesystem will require a passphrase at next boot.")
         enabledConstraints:
           minSelected: 1
           maxSelected: 1
@@ -79,6 +104,3 @@ data:
             method: disableAutoUnlock
             params:
               uuid: "{{ _selected[0].uuid }}"
-            confirmDialog:
-              template: confirmation
-              message: _("Do you really want to disable auto-unlock? The key file will be deleted and the filesystem will require a passphrase at next boot.")

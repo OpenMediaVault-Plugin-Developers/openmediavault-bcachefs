@@ -1,0 +1,86 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-filesystems-options-form-page
+  type: formPage
+  config:
+    request:
+      service: Bcachefs
+      get:
+        method: getFilesystemOptions
+        params:
+          uuid: "{{ _routeParams.uuid }}"
+      post:
+        method: setFilesystemOptions
+    fields:
+      - type: hidden
+        name: uuid
+      - type: hint
+        hintType: info
+        text: _("Changing these options applies to new and existing data — bcachefs reconcile rebalances the filesystem in the background to match. Target fields take a label group name (e.g. 'ssd'), or 'none' to clear.")
+      - type: textInput
+        name: label
+        label: _("Label")
+        disabled: true
+        submitValue: false
+      - type: select
+        name: compression
+        label: _("Compression")
+        value: "none"
+        store:
+          data:
+            - - "none"
+              - _("None")
+            - - "lz4"
+              - "LZ4"
+            - - "gzip"
+              - "GZIP"
+            - - "zstd"
+              - "Zstd"
+      - type: select
+        name: background_compression
+        label: _("Background compression")
+        value: "none"
+        hint: _("Algorithm used to recompress data in the background (by reconcile). Leave as None to match foreground compression.")
+        store:
+          data:
+            - - "none"
+              - _("None")
+            - - "lz4"
+              - "LZ4"
+            - - "gzip"
+              - "GZIP"
+            - - "zstd"
+              - "Zstd"
+      - type: numberInput
+        name: data_replicas
+        label: _("Replicas")
+        value: 1
+        min: 1
+        max: 10
+        step: 1
+        hint: _("Number of copies kept for data. Reducing below the device count frees space; increasing requires enough devices.")
+      - type: textInput
+        name: foreground_target
+        label: _("Foreground Target")
+        value: ""
+        hint: _("Label group where new data is written first. 'none' to clear.")
+      - type: textInput
+        name: promote_target
+        label: _("Promote Target")
+        value: ""
+        hint: _("Label group that frequently-read data is promoted to. 'none' to clear.")
+      - type: textInput
+        name: background_target
+        label: _("Background Target")
+        value: ""
+        hint: _("Label group that data is moved to in the background. 'none' to clear.")
+    buttons:
+      - template: submit
+        execute:
+          type: url
+          url: /storage/bcachefs/filesystems
+      - template: cancel
+        execute:
+          type: url
+          url: /storage/bcachefs/filesystems

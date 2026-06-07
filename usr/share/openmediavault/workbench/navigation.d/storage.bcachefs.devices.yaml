@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "storage.bcachefs.devices"
+  text: _("Devices")
+  position: 15
+  icon: mdi:harddisk-plus
+  url: "/storage/bcachefs/devices"
