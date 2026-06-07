@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-31 00:55+0000\n"
+"POT-Creation-Date: 2026-06-07 01:49+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Last-Translator: BoneNI, 2026\n"
 "Language-Team: Lao (Laos) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/lo_LA/)\n"
@@ -28,8 +28,22 @@ msgstr ""
 "'ສະນັບຊອດ' ຈະເກັບຮັກສາ N ອັນຫຼ້າສຸດ; ຫົວໜ່ວຍເວລາຈະລຶບສະນັບຊອດທີ່ເກົ່າກວ່າ N "
 "ມື້/ອາທິດ/ເດືອນ/ປີ."
 
+msgid "Add"
+msgstr ""
+
+msgid "Add Device"
+msgstr ""
+
+msgid "Add device"
+msgstr ""
+
 msgid "Advanced"
 msgstr "ຂັ້ນສູງ"
+
+msgid ""
+"Algorithm used to recompress data in the background (by reconcile). Leave as"
+" None to match foreground compression."
+msgstr ""
 
 msgid "April"
 msgstr "ເມສາ"
@@ -52,7 +66,13 @@ msgstr "ປົດລັອກອັດຕະໂນມັດ"
 msgid "Auto-unlock at boot"
 msgstr "ປົດລັອກອັດຕະໂນມັດຕອນບູດເຄື່ອງ"
 
+msgid "Back"
+msgstr ""
+
 msgid "Background Target"
+msgstr ""
+
+msgid "Background compression"
 msgstr ""
 
 msgid "Bcachefs"
@@ -70,6 +90,12 @@ msgid ""
 msgstr ""
 "ການປ່ຽນຊຸດຊອບແວຈະເຮັດໃຫ້ມີການຕິດຕັ້ງ bcachefs-tools "
 "ໃໝ່ຈາກຄັງເກັບທີ່ເລືອກໃນຕອນກົດນຳໃຊ້ຄັ້ງຕໍ່ໄປ."
+
+msgid ""
+"Changing these options applies to new and existing data — bcachefs reconcile"
+" rebalances the filesystem in the background to match. Target fields take a "
+"label group name (e.g. 'ssd'), or 'none' to clear."
+msgstr ""
 
 msgid "Checksum"
 msgstr "ລະຫັດກວດສອບ"
@@ -130,6 +156,9 @@ msgstr "ມື້ຂອງອາທິດ"
 msgid "December"
 msgstr "ທັນວາ"
 
+msgid "Device"
+msgstr ""
+
 msgid "Devices"
 msgstr "ອຸປະກອນ"
 
@@ -146,8 +175,17 @@ msgstr ""
 "ທ່ານຕ້ອງການປິດການປົດລັອກອັດຕະໂນມັດແທ້ຫຼືບໍ່? ໄຟລ໌ກຸນແຈຈະຖືກລຶບ ແລະ "
 "ລະບົບໄຟລ໌ຈະຕ້ອງມີລະຫັດຜ່ານໃນການບູດເຄື່ອງຄັ້ງຕໍ່ໄປ."
 
+msgid "Durability"
+msgstr ""
+
 msgid "Edit"
 msgstr "ແກ້ໄຂ"
+
+msgid "Edit Options"
+msgstr ""
+
+msgid "Edit options"
+msgstr ""
 
 msgid "Enable Auto-unlock"
 msgstr "ເປີດການປົດລັອກອັດຕະໂນມັດ"
@@ -156,6 +194,12 @@ msgid "Enable auto-unlock"
 msgstr "ເປີດການປົດລັອກອັດຕະໂນມັດ"
 
 msgid "Enable device label groups"
+msgstr ""
+
+msgid ""
+"Enable erasure coding (parity-based redundancy, RAID5/6-style) for more "
+"efficient space usage than full replicas. Requires at least 3 devices. "
+"Combine with replicas for metadata protection."
 msgstr ""
 
 msgid ""
@@ -173,6 +217,15 @@ msgstr "ເຂົ້າລະຫັດແລ້ວ"
 
 msgid "Encryption"
 msgstr "ການເຂົ້າລະຫັດ"
+
+msgid "Erasure coding"
+msgstr ""
+
+msgid "Evacuate (move data off)"
+msgstr ""
+
+msgid "Evacuate device"
+msgstr ""
 
 msgid "Every N day of month"
 msgstr "ທຸກໆ N ມື້ຂອງເດືອນ"
@@ -256,12 +309,21 @@ msgstr "ເກັບຮັກສາ"
 msgid "Label"
 msgstr "ປ້າຍຊື່"
 
+msgid "Label group"
+msgstr ""
+
 msgid "Label group name (e.g. 'hdd')."
 msgstr ""
 
 msgid ""
 "Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
 "group.group2, etc."
+msgstr ""
+
+msgid "Label group that data is moved to in the background. 'none' to clear."
+msgstr ""
+
+msgid "Label group that frequently-read data is promoted to. 'none' to clear."
 msgstr ""
 
 msgid ""
@@ -279,8 +341,17 @@ msgid ""
 " bcachefs defaults."
 msgstr ""
 
+msgid "Label group where new data is written first. 'none' to clear."
+msgstr ""
+
 msgid "March"
 msgstr "ມີນາ"
+
+msgid ""
+"Marking a device as failed tells bcachefs to stop using it. Make sure the "
+"filesystem still has enough replicas/devices to keep your data accessible. "
+"Continue?"
+msgstr ""
 
 msgid "May"
 msgstr "ພຶດສະພາ"
@@ -310,6 +381,11 @@ msgid "November"
 msgstr "ພະຈິກ"
 
 msgid ""
+"Number of copies kept for data. Reducing below the device count frees space;"
+" increasing requires enough devices."
+msgstr ""
+
+msgid ""
 "Number of copies to store for both data and metadata. Usable space ≈ total "
 "raw ÷ replicas — df shows raw capacity"
 msgstr ""
@@ -324,10 +400,20 @@ msgstr ""
 msgid "Only send an email if the job exits with an error."
 msgstr "ສົ່ງອີເມລ໌ສະເພາະເມື່ອວຽກເກີດຂໍ້ຜິດພາດເທົ່ານັ້ນ."
 
+msgid ""
+"Optional label group to place this device in (e.g. 'hdd.hdd3') for tiering. "
+"Leave empty for no group."
+msgstr ""
+
 msgid "Optional label to identify this filesystem."
 msgstr "ປ້າຍຊື່ (ບໍ່ບັງຄັບ) ເພື່ອລະບຸລະບົບໄຟລ໌ນີ້."
 
 msgid "Optional third group. Leave empty if not needed."
+msgstr ""
+
+msgid ""
+"Output of 'bcachefs fs usage' (per-device capacity, replication and degraded"
+" data), with reconcile/rebalance status when supported."
 msgstr ""
 
 msgid "Package suite"
@@ -342,6 +428,12 @@ msgstr "ລະຫັດຜ່ານ"
 msgid "Path"
 msgstr "ເສັ້ນທາງ"
 
+msgid ""
+"Permanently remove this device from the filesystem? Its data is migrated to "
+"the remaining devices first, which can take a long time and requires enough "
+"free space."
+msgstr ""
+
 msgid "Prefix"
 msgstr "ຄຳນຳໜ້າ"
 
@@ -353,6 +445,12 @@ msgstr "ອ່ານຢ່າງດຽວ"
 
 msgid "Read-only snapshot"
 msgstr "ສະນັບຊອດແບບອ່ານຢ່າງດຽວ"
+
+msgid "Remove device"
+msgstr ""
+
+msgid "Remove device (data is migrated off first)"
+msgstr ""
 
 msgid "Replicas"
 msgstr "ຊຸດສຳເນົາ"
@@ -392,6 +490,12 @@ msgstr "ວຽກກວດສອບຂໍ້ມູນ (Scrub)"
 msgid "Scrub started."
 msgstr "ເລີ່ມການກວດສອບຂໍ້ມູນແລ້ວ."
 
+msgid "Select a device ..."
+msgstr ""
+
+msgid "Select a filesystem ..."
+msgstr ""
+
 msgid "Select devices ..."
 msgstr "ເລືອກອຸປະກອນ ..."
 
@@ -410,8 +514,20 @@ msgstr "ສົ່ງຜົນການເຮັດວຽກຂອງຄຳສັ
 msgid "September"
 msgstr "ກັນຍາ"
 
+msgid "Set failed"
+msgstr ""
+
+msgid "Set read-only"
+msgstr ""
+
+msgid "Set read-write"
+msgstr ""
+
 msgid "Settings"
 msgstr "ການຕັ້ງຄ່າ"
+
+msgid "Size"
+msgstr ""
 
 msgid "Snapshot"
 msgstr "ສະນັບຊອດ"
@@ -431,6 +547,9 @@ msgstr ""
 
 msgid "Starting scrub ..."
 msgstr "ກຳລັງເລີ່ມການກວດສອບຂໍ້ມູນ ..."
+
+msgid "State"
+msgstr ""
 
 msgid "Subvolume"
 msgstr "ຊັບວໍລຸມ"
@@ -468,6 +587,12 @@ msgstr ""
 msgid "The passphrases do not match."
 msgstr "ລະຫັດຜ່ານບໍ່ກົງກັນ."
 
+msgid ""
+"The selected device will be wiped and added to the chosen filesystem. If a "
+"device is not listed, it already contains a file system or partitions; wipe "
+"it first under Storage > Disks."
+msgstr ""
+
 msgid "Thursday"
 msgstr "ວັນພະຫັດ"
 
@@ -491,6 +616,9 @@ msgstr "ອັບເດດວຽກກວດສອບຂໍ້ມູນແລ້
 
 msgid "Updated snapshot job."
 msgstr "ອັບເດດວຽກສະນັບຊອດແລ້ວ."
+
+msgid "Usage"
+msgstr ""
 
 msgid "Wednesday"
 msgstr "ວັນພຸດ"
@@ -528,11 +656,23 @@ msgstr ""
 msgid "days"
 msgstr "ມື້"
 
+msgid "failed"
+msgstr ""
+
 msgid "months"
 msgstr "ເດືອນ"
 
+msgid "ro"
+msgstr ""
+
+msgid "rw"
+msgstr ""
+
 msgid "snapshots"
 msgstr "ສະນັບຊອດ"
+
+msgid "spare"
+msgstr ""
 
 msgid "weeks"
 msgstr "ອາທິດ"

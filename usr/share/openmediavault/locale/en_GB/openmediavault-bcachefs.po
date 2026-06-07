@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-31 00:55+0000\n"
+"POT-Creation-Date: 2026-06-07 01:49+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>, 2026\n"
 "Language-Team: English (United Kingdom) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/en_GB/)\n"
@@ -28,8 +28,22 @@ msgstr ""
 "'Snapshots' keeps the N most recent; time units delete snapshots older than "
 "N days/weeks/months/years."
 
+msgid "Add"
+msgstr ""
+
+msgid "Add Device"
+msgstr ""
+
+msgid "Add device"
+msgstr ""
+
 msgid "Advanced"
 msgstr "Advanced"
+
+msgid ""
+"Algorithm used to recompress data in the background (by reconcile). Leave as"
+" None to match foreground compression."
+msgstr ""
 
 msgid "April"
 msgstr "April"
@@ -52,7 +66,13 @@ msgstr "Auto-unlock"
 msgid "Auto-unlock at boot"
 msgstr "Auto-unlock at boot"
 
+msgid "Back"
+msgstr ""
+
 msgid "Background Target"
+msgstr ""
+
+msgid "Background compression"
 msgstr ""
 
 msgid "Bcachefs"
@@ -70,6 +90,12 @@ msgid ""
 msgstr ""
 "Changing the suite will reinstall bcachefs-tools from the selected "
 "repository on the next Apply."
+
+msgid ""
+"Changing these options applies to new and existing data — bcachefs reconcile"
+" rebalances the filesystem in the background to match. Target fields take a "
+"label group name (e.g. 'ssd'), or 'none' to clear."
+msgstr ""
 
 msgid "Checksum"
 msgstr "Checksum"
@@ -130,6 +156,9 @@ msgstr "Day of week"
 msgid "December"
 msgstr "December"
 
+msgid "Device"
+msgstr ""
+
 msgid "Devices"
 msgstr "Devices"
 
@@ -146,8 +175,17 @@ msgstr ""
 "Do you really want to disable auto-unlock? The key file will be deleted and "
 "the filesystem will require a passphrase at next boot."
 
+msgid "Durability"
+msgstr ""
+
 msgid "Edit"
 msgstr "Edit"
+
+msgid "Edit Options"
+msgstr ""
+
+msgid "Edit options"
+msgstr ""
 
 msgid "Enable Auto-unlock"
 msgstr "Enable Auto-unlock"
@@ -156,6 +194,12 @@ msgid "Enable auto-unlock"
 msgstr "Enable auto-unlock"
 
 msgid "Enable device label groups"
+msgstr ""
+
+msgid ""
+"Enable erasure coding (parity-based redundancy, RAID5/6-style) for more "
+"efficient space usage than full replicas. Requires at least 3 devices. "
+"Combine with replicas for metadata protection."
 msgstr ""
 
 msgid ""
@@ -173,6 +217,15 @@ msgstr "Encrypted"
 
 msgid "Encryption"
 msgstr "Encryption"
+
+msgid "Erasure coding"
+msgstr ""
+
+msgid "Evacuate (move data off)"
+msgstr ""
+
+msgid "Evacuate device"
+msgstr ""
 
 msgid "Every N day of month"
 msgstr "Every N day of month"
@@ -256,12 +309,21 @@ msgstr "Keep"
 msgid "Label"
 msgstr "Label"
 
+msgid "Label group"
+msgstr ""
+
 msgid "Label group name (e.g. 'hdd')."
 msgstr ""
 
 msgid ""
 "Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
 "group.group2, etc."
+msgstr ""
+
+msgid "Label group that data is moved to in the background. 'none' to clear."
+msgstr ""
+
+msgid "Label group that frequently-read data is promoted to. 'none' to clear."
 msgstr ""
 
 msgid ""
@@ -279,8 +341,17 @@ msgid ""
 " bcachefs defaults."
 msgstr ""
 
+msgid "Label group where new data is written first. 'none' to clear."
+msgstr ""
+
 msgid "March"
 msgstr "March"
+
+msgid ""
+"Marking a device as failed tells bcachefs to stop using it. Make sure the "
+"filesystem still has enough replicas/devices to keep your data accessible. "
+"Continue?"
+msgstr ""
 
 msgid "May"
 msgstr "May"
@@ -310,6 +381,11 @@ msgid "November"
 msgstr "November"
 
 msgid ""
+"Number of copies kept for data. Reducing below the device count frees space;"
+" increasing requires enough devices."
+msgstr ""
+
+msgid ""
 "Number of copies to store for both data and metadata. Usable space ≈ total "
 "raw ÷ replicas — df shows raw capacity"
 msgstr ""
@@ -323,10 +399,20 @@ msgstr "Only alphanumeric characters, hyphens, and underscores are allowed."
 msgid "Only send an email if the job exits with an error."
 msgstr "Only send an email if the job exits with an error."
 
+msgid ""
+"Optional label group to place this device in (e.g. 'hdd.hdd3') for tiering. "
+"Leave empty for no group."
+msgstr ""
+
 msgid "Optional label to identify this filesystem."
 msgstr "Optional label to identify this filesystem."
 
 msgid "Optional third group. Leave empty if not needed."
+msgstr ""
+
+msgid ""
+"Output of 'bcachefs fs usage' (per-device capacity, replication and degraded"
+" data), with reconcile/rebalance status when supported."
 msgstr ""
 
 msgid "Package suite"
@@ -341,6 +427,12 @@ msgstr "Passphrase"
 msgid "Path"
 msgstr "Path"
 
+msgid ""
+"Permanently remove this device from the filesystem? Its data is migrated to "
+"the remaining devices first, which can take a long time and requires enough "
+"free space."
+msgstr ""
+
 msgid "Prefix"
 msgstr "Prefix"
 
@@ -352,6 +444,12 @@ msgstr "Read-only"
 
 msgid "Read-only snapshot"
 msgstr "Read-only snapshot"
+
+msgid "Remove device"
+msgstr ""
+
+msgid "Remove device (data is migrated off first)"
+msgstr ""
 
 msgid "Replicas"
 msgstr "Replicas"
@@ -390,6 +488,12 @@ msgstr "Scrub Jobs"
 msgid "Scrub started."
 msgstr "Scrub started."
 
+msgid "Select a device ..."
+msgstr ""
+
+msgid "Select a filesystem ..."
+msgstr ""
+
 msgid "Select devices ..."
 msgstr "Select devices ..."
 
@@ -408,8 +512,20 @@ msgstr "Send the command output via email on completion."
 msgid "September"
 msgstr "September"
 
+msgid "Set failed"
+msgstr ""
+
+msgid "Set read-only"
+msgstr ""
+
+msgid "Set read-write"
+msgstr ""
+
 msgid "Settings"
 msgstr "Settings"
+
+msgid "Size"
+msgstr ""
 
 msgid "Snapshot"
 msgstr "Snapshot"
@@ -429,6 +545,9 @@ msgstr ""
 
 msgid "Starting scrub ..."
 msgstr "Starting scrub ..."
+
+msgid "State"
+msgstr ""
 
 msgid "Subvolume"
 msgstr "Subvolume"
@@ -468,6 +587,12 @@ msgstr ""
 msgid "The passphrases do not match."
 msgstr "The passphrases do not match."
 
+msgid ""
+"The selected device will be wiped and added to the chosen filesystem. If a "
+"device is not listed, it already contains a file system or partitions; wipe "
+"it first under Storage > Disks."
+msgstr ""
+
 msgid "Thursday"
 msgstr "Thursday"
 
@@ -491,6 +616,9 @@ msgstr "Updated scrub job."
 
 msgid "Updated snapshot job."
 msgstr "Updated snapshot job."
+
+msgid "Usage"
+msgstr ""
 
 msgid "Wednesday"
 msgstr "Wednesday"
@@ -527,11 +655,23 @@ msgstr ""
 msgid "days"
 msgstr "days"
 
+msgid "failed"
+msgstr ""
+
 msgid "months"
 msgstr "months"
 
+msgid "ro"
+msgstr ""
+
+msgid "rw"
+msgstr ""
+
 msgid "snapshots"
 msgstr "snapshots"
+
+msgid "spare"
+msgstr ""
 
 msgid "weeks"
 msgstr "weeks"

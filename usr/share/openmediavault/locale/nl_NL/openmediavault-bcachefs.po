@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-31 00:55+0000\n"
+"POT-Creation-Date: 2026-06-07 01:49+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Last-Translator: Stephan Paternotte <stephan@paternottes.net>, 2026\n"
 "Language-Team: Dutch (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/nl/)\n"
@@ -28,8 +28,22 @@ msgstr ""
 "‘Momentopnamen’ behoudt de N het meest recente; tijdseenheden verwijderen "
 "momentopnamen ouder dan N dagen/weken/maanden/jaren."
 
+msgid "Add"
+msgstr ""
+
+msgid "Add Device"
+msgstr ""
+
+msgid "Add device"
+msgstr ""
+
 msgid "Advanced"
 msgstr "Geavanceerd"
+
+msgid ""
+"Algorithm used to recompress data in the background (by reconcile). Leave as"
+" None to match foreground compression."
+msgstr ""
 
 msgid "April"
 msgstr "April"
@@ -52,7 +66,13 @@ msgstr "Autom. ontgrendelen"
 msgid "Auto-unlock at boot"
 msgstr "Autom. ontgrendelen bij opstart"
 
+msgid "Back"
+msgstr ""
+
 msgid "Background Target"
+msgstr ""
+
+msgid "Background compression"
 msgstr ""
 
 msgid "Bcachefs"
@@ -70,6 +90,12 @@ msgid ""
 msgstr ""
 "Als u de suite wijzigt, worden bcachefs-tools uit de geselecteerde "
 "oplagplaats opnieuw geïnstalleerd bij de volgende toepassing."
+
+msgid ""
+"Changing these options applies to new and existing data — bcachefs reconcile"
+" rebalances the filesystem in the background to match. Target fields take a "
+"label group name (e.g. 'ssd'), or 'none' to clear."
+msgstr ""
 
 msgid "Checksum"
 msgstr "Controlesom"
@@ -130,6 +156,9 @@ msgstr "Dag van week"
 msgid "December"
 msgstr "December"
 
+msgid "Device"
+msgstr ""
+
 msgid "Devices"
 msgstr "Apparaten"
 
@@ -147,8 +176,17 @@ msgstr ""
 "verwijderd en voor het bestandssysteem is bij de volgende keer opstarten een"
 " wachtwoordzin vereist."
 
+msgid "Durability"
+msgstr ""
+
 msgid "Edit"
 msgstr "Bewerken"
+
+msgid "Edit Options"
+msgstr ""
+
+msgid "Edit options"
+msgstr ""
 
 msgid "Enable Auto-unlock"
 msgstr "Autom. ontgrendeling inschakelen"
@@ -157,6 +195,12 @@ msgid "Enable auto-unlock"
 msgstr "Autom. ontgrendeling inschakelen"
 
 msgid "Enable device label groups"
+msgstr ""
+
+msgid ""
+"Enable erasure coding (parity-based redundancy, RAID5/6-style) for more "
+"efficient space usage than full replicas. Requires at least 3 devices. "
+"Combine with replicas for metadata protection."
 msgstr ""
 
 msgid ""
@@ -174,6 +218,15 @@ msgstr "Versleuteld"
 
 msgid "Encryption"
 msgstr "Versleuteling"
+
+msgid "Erasure coding"
+msgstr ""
+
+msgid "Evacuate (move data off)"
+msgstr ""
+
+msgid "Evacuate device"
+msgstr ""
 
 msgid "Every N day of month"
 msgstr "Elke N-de dag van de maand"
@@ -258,12 +311,21 @@ msgstr "Behouden"
 msgid "Label"
 msgstr "Label"
 
+msgid "Label group"
+msgstr ""
+
 msgid "Label group name (e.g. 'hdd')."
 msgstr ""
 
 msgid ""
 "Label group name (e.g. 'ssd'). Devices will be labeled group.group1, "
 "group.group2, etc."
+msgstr ""
+
+msgid "Label group that data is moved to in the background. 'none' to clear."
+msgstr ""
+
+msgid "Label group that frequently-read data is promoted to. 'none' to clear."
 msgstr ""
 
 msgid ""
@@ -281,8 +343,17 @@ msgid ""
 " bcachefs defaults."
 msgstr ""
 
+msgid "Label group where new data is written first. 'none' to clear."
+msgstr ""
+
 msgid "March"
 msgstr "Maart"
+
+msgid ""
+"Marking a device as failed tells bcachefs to stop using it. Make sure the "
+"filesystem still has enough replicas/devices to keep your data accessible. "
+"Continue?"
+msgstr ""
 
 msgid "May"
 msgstr "Mei"
@@ -312,6 +383,11 @@ msgid "November"
 msgstr "November"
 
 msgid ""
+"Number of copies kept for data. Reducing below the device count frees space;"
+" increasing requires enough devices."
+msgstr ""
+
+msgid ""
 "Number of copies to store for both data and metadata. Usable space ≈ total "
 "raw ÷ replicas — df shows raw capacity"
 msgstr ""
@@ -328,10 +404,20 @@ msgid "Only send an email if the job exits with an error."
 msgstr ""
 "Alleen een e-mail versturen als de taak met een fout wordt afgesloten."
 
+msgid ""
+"Optional label group to place this device in (e.g. 'hdd.hdd3') for tiering. "
+"Leave empty for no group."
+msgstr ""
+
 msgid "Optional label to identify this filesystem."
 msgstr "Optioneel label om dit bestandssysteem te identificeren."
 
 msgid "Optional third group. Leave empty if not needed."
+msgstr ""
+
+msgid ""
+"Output of 'bcachefs fs usage' (per-device capacity, replication and degraded"
+" data), with reconcile/rebalance status when supported."
 msgstr ""
 
 msgid "Package suite"
@@ -346,6 +432,12 @@ msgstr "Wachtwoordzin"
 msgid "Path"
 msgstr "Pad"
 
+msgid ""
+"Permanently remove this device from the filesystem? Its data is migrated to "
+"the remaining devices first, which can take a long time and requires enough "
+"free space."
+msgstr ""
+
 msgid "Prefix"
 msgstr "Voorvoegsel"
 
@@ -357,6 +449,12 @@ msgstr "Alleen-lezen"
 
 msgid "Read-only snapshot"
 msgstr "Alleen-lezen momentopname"
+
+msgid "Remove device"
+msgstr ""
+
+msgid "Remove device (data is migrated off first)"
+msgstr ""
 
 msgid "Replicas"
 msgstr "Replica's"
@@ -396,6 +494,12 @@ msgstr "Scrub-taken"
 msgid "Scrub started."
 msgstr "Scrub gestart."
 
+msgid "Select a device ..."
+msgstr ""
+
+msgid "Select a filesystem ..."
+msgstr ""
+
 msgid "Select devices ..."
 msgstr "Apparaten selecteren…"
 
@@ -416,8 +520,20 @@ msgstr "De opdrachtuitvoer na voltooiing via e-mail verturen."
 msgid "September"
 msgstr "September"
 
+msgid "Set failed"
+msgstr ""
+
+msgid "Set read-only"
+msgstr ""
+
+msgid "Set read-write"
+msgstr ""
+
 msgid "Settings"
 msgstr "Instellingen"
+
+msgid "Size"
+msgstr ""
 
 msgid "Snapshot"
 msgstr "Momentopname"
@@ -437,6 +553,9 @@ msgstr ""
 
 msgid "Starting scrub ..."
 msgstr "Scrub starten…"
+
+msgid "State"
+msgstr ""
 
 msgid "Subvolume"
 msgstr "Subvolume"
@@ -480,6 +599,12 @@ msgstr ""
 msgid "The passphrases do not match."
 msgstr "De wachtwoordzinnen komen niet overeen."
 
+msgid ""
+"The selected device will be wiped and added to the chosen filesystem. If a "
+"device is not listed, it already contains a file system or partitions; wipe "
+"it first under Storage > Disks."
+msgstr ""
+
 msgid "Thursday"
 msgstr "Donderdag"
 
@@ -503,6 +628,9 @@ msgstr "Scrub-taak bijgewerkt."
 
 msgid "Updated snapshot job."
 msgstr "Momentopname-taak bijgewerkt."
+
+msgid "Usage"
+msgstr ""
 
 msgid "Wednesday"
 msgstr "Woensdag"
@@ -541,11 +669,23 @@ msgstr ""
 msgid "days"
 msgstr "dagen"
 
+msgid "failed"
+msgstr ""
+
 msgid "months"
 msgstr "maanden"
 
+msgid "ro"
+msgstr ""
+
+msgid "rw"
+msgstr ""
+
 msgid "snapshots"
 msgstr "momentopnamen"
+
+msgid "spare"
+msgstr ""
 
 msgid "weeks"
 msgstr "weken"
