@@ -34,9 +34,10 @@ for keyfile in "$KEYS_DIR"/*.key; do
     # Wait for all member devices of the (possibly multi-device) filesystem to
     # be present before attempting to unlock. Bounded so a missing/failed
     # device cannot stall boot indefinitely.
+    # wait-devices only accepts a "UUID=<uuid>" device string, not a path.
     if [ "$wait_devices_supported" -eq 1 ]; then
-        timeout 30 /usr/sbin/bcachefs wait-devices "$device" 2>/dev/null || \
-            echo "bcachefs-autounlock: wait-devices timed out for $uuid, continuing" >&2
+        timeout 30 /usr/sbin/bcachefs wait-devices "UUID=$uuid" 2>/dev/null || \
+            echo "bcachefs-autounlock: wait-devices failed for $uuid, continuing" >&2
     fi
 
     if /usr/sbin/bcachefs unlock "$device" < "$keyfile" 2>/dev/null; then
