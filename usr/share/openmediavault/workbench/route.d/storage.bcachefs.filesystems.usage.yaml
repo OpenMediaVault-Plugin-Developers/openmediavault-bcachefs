@@ -3,4 +3,5 @@ type: route
 data:
   url: "/storage/bcachefs/filesystems/usage/:uuid"
   title: _("Usage")
+  editing: true
   component: omv-storage-bcachefs-filesystems-usage-form-page
