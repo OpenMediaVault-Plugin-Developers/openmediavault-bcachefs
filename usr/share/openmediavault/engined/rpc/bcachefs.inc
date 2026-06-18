@@ -340,14 +340,26 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $result = [];
         foreach ($this->getMountedBcachefsFilesystems() as $fs) {
             $keyFile    = sprintf("/etc/bcachefs/keys/%s.key", $fs['uuid']);
+            $mnt        = $fs['mountpoint'];
+            // Report usable capacity as seen by statvfs, which already accounts
+            // for replication and compression overhead. Mirrors the figures the
+            // core Filesystems page shows.
+            $total      = @disk_total_space($mnt);
+            $free       = @disk_free_space($mnt);
+            $used       = ($total !== false && $free !== false)
+                            ? max(0.0, $total - $free) : null;
+            $usedpercent = ($total) ? round($used / $total * 100, 1) : 0;
             $result[] = [
                 "uuid"        => $fs['uuid'],
                 "label"       => $fs['label'] ?? "",
-                "mountpoint"  => $fs['mountpoint'],
+                "mountpoint"  => $mnt,
                 "encrypted"   => $fs['encrypted'],
                 "autounlock"  => file_exists($keyFile),
                 "devicecount" => $fs['devicecount'],
                 "replicas"    => $fs['replicas'],
+                "total"       => ($total !== false) ? $total : null,
+                "used"        => $used,
+                "usedpercent" => $usedpercent,
             ];
         }
         return $this->applyFilter($result, $params['start'],
@@ -1205,7 +1217,8 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $members = [];
         $idx     = null;
         foreach (preg_split('/\r?\n/', $superText) as $line) {
-            if (preg_match('/^\s*Device:\s+(\d+)\s*$/', $line, $m)) {
+            // The device header reads "Device 0:  /dev/...  (model)".
+            if (preg_match('/^\s*Device\s+(\d+):/', $line, $m)) {
                 $idx = intval($m[1]);
                 $members[$idx] = [
                     'label' => '', 'state' => '', 'size' => '', 'durability' => '',
