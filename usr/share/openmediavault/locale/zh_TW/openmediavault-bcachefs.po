@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 01:49+0000\n"
+"POT-Creation-Date: 2026-06-18 01:12+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Last-Translator: kochin <kochinc@outlook.com>, 2026\n"
 "Language-Team: Chinese (Taiwan) (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/zh_TW/)\n"
@@ -598,6 +598,9 @@ msgid "Updated snapshot job."
 msgstr "已更新快照工作。"
 
 msgid "Usage"
+msgstr ""
+
+msgid "Used"
 msgstr ""
 
 msgid "Wednesday"

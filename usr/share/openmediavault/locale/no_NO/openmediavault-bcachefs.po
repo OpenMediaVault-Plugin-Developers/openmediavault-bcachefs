@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openmediavault-bcachefs\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 01:49+0000\n"
+"POT-Creation-Date: 2026-06-18 01:12+0000\n"
 "PO-Revision-Date: 2026-04-09 23:24+0000\n"
 "Language-Team: Norwegian (https://app.transifex.com/openmediavault-plugin-developers/teams/1854/no/)\n"
 "MIME-Version: 1.0\n"
@@ -589,6 +589,9 @@ msgid "Updated snapshot job."
 msgstr ""
 
 msgid "Usage"
+msgstr ""
+
+msgid "Used"
 msgstr ""
 
 msgid "Wednesday"
