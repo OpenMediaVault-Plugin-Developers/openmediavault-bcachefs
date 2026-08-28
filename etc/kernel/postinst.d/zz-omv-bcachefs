@@ -1,0 +1,47 @@
+#!/bin/bash
+# Kernel postinst hook: keep a working out-of-tree bcachefs module across kernel
+# upgrades.
+#
+# DKMS self-heals on its own (its own postinst.d hook rebuilds for new kernels),
+# but the prebuilt-.ko provider has no such mechanism, so we replicate it here:
+# when a new kernel is installed, fetch the matching prebuilt module for it.
+#
+# The helper returns success when the module is provisioned or DKMS already owns
+# it, and non-zero only when there is no prebuilt module for this kernel and DKMS
+# is not installed -- i.e. the "new kernel, mirror hasn't built it yet" race. In
+# that case we cannot apt-install DKMS inline (we hold the dpkg lock), so we
+# defer a reconcile and flag the change in the webUI as a backstop.
+#
+# Hook arguments: $1 = kernel version, $2 = image path.
+
+set -e
+
+KVER="${1:-}"
+[ -n "$KVER" ] || exit 0
+
+# Skip placeholder/transition kernels that have no module tree.
+[ -d "/lib/modules/$KVER" ] || exit 0
+
+if /usr/sbin/omv-bcachefs-module install "$KVER" >/dev/null 2>&1; then
+    exit 0
+fi
+
+echo "zz-omv-bcachefs: no prebuilt bcachefs module for kernel $KVER yet;" \
+     "scheduling DKMS fallback" >&2
+
+# Defer the DKMS install: we are inside the dpkg lock, so reconcile after the
+# current transaction releases it.
+if command -v systemd-run >/dev/null 2>&1; then
+    systemd-run --quiet --on-active=120 \
+        /usr/sbin/omv-salt deploy run --no-color bcachefs >/dev/null 2>&1 || true
+fi
+
+# Reliable backstop: mark the module dirty so pending changes are shown and the
+# next Apply reconciles (installs DKMS, which then builds for this kernel).
+if [ -r /usr/share/openmediavault/scripts/helper-functions ]; then
+    . /etc/default/openmediavault
+    . /usr/share/openmediavault/scripts/helper-functions
+    omv_module_set_dirty bcachefs || true
+fi
+
+exit 0

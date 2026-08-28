@@ -22,7 +22,23 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-DEVICES=("$@")
+# Canonicalise every device argument. OMV's storage layer only recognises
+# device-mapper nodes as /dev/mapper/* or /dev/dm-N — the /dev/<vg>/<lv>
+# symlink form that LVM also creates is not matched by any storage backend,
+# so createFilesystem (and every other RPC that calls assertGetStorageDevice)
+# fails with "Device '...' does not exist." Resolving each argument with
+# `readlink -f` turns LVM logical volumes into /dev/dm-N and leaves plain
+# disks like /dev/sdX untouched.
+DEVICES=()
+for _dev in "$@"; do
+    if [ ! -b "$_dev" ]; then
+        echo "Not a block device: $_dev" >&2
+        exit 1
+    fi
+    _real=$(readlink -f "$_dev")
+    [ "$_real" != "$_dev" ] && echo "  resolved $_dev -> $_real" >&2
+    DEVICES+=("$_real")
+done
 
 # ---------------------------------------------------------------------------
 # Colours / counters  (all display output goes to stderr so that $() captures
@@ -326,7 +342,12 @@ MNT="/srv/dev-disk-by-uuid-${FS_UUID}"
 info "Mount point: $MNT"
 
 mkdir -p "$MNT"
-if mount -t bcachefs "${DEVICES[0]}" "$MNT" 2>/dev/null; then
+# Multi-device bcachefs mounts take a colon-separated SOURCE (this is also
+# what OMV writes to fstab). Mounting a single member would attach only that
+# device, so getDeviceList / getMountedBcachefsFilesystems would then see
+# just one device instead of the whole array.
+MOUNT_SRC=$(IFS=:; echo "${DEVICES[*]}")
+if mount -t bcachefs "$MOUNT_SRC" "$MNT" 2>/dev/null; then
     _pass "mount bcachefs at $MNT"
 else
     _fail "mount bcachefs at $MNT" "mount failed"
@@ -851,6 +872,20 @@ else
         "{\"devicefile\":\"$LAST_DEV\"}"
     assert_rpc_bg "addDevice (re-add)" "Bcachefs" "addDevice" \
         "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$LAST_DEV\"}"
+
+    # The UI's "Set failed" button sends state=failed; newer bcachefs-tools
+    # renamed that device state to "evacuating" (valid values: rw, ro,
+    # evacuating, spare). The RPC normalises either name to whatever the
+    # installed tool accepts, so both must succeed. Run on the just re-added
+    # member so it holds no data and --force can take it out of service.
+    assert_rpc "setDeviceState — failed" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"failed\"}" >/dev/null
+    assert_rpc "setDeviceState — rw (restore after failed)" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"rw\"}" >/dev/null
+    assert_rpc "setDeviceState — evacuating" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"evacuating\"}" >/dev/null
+    assert_rpc "setDeviceState — rw (restore after evacuating)" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$LAST_DEV\",\"state\":\"rw\"}" >/dev/null
 
     assert_rpc_fails "setDeviceState — invalid state" "Bcachefs" "setDeviceState" \
         "{\"devicefile\":\"$LAST_DEV\",\"state\":\"bogus\"}"

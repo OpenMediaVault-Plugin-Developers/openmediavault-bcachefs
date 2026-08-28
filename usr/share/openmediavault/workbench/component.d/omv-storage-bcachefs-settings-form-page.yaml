@@ -11,15 +11,75 @@ data:
       post:
         method: setSettings
     fields:
+      - type: divider
+        title: _("Kernel module")
       - type: hint
-        hintType: warning
-        text: _("bcachefs-kernel-dkms requires kernel 6.16 or newer. Your running kernel ({{ kernelVersion }}) is not supported — the DKMS module will not be installed. Upgrade your kernel and reboot to enable bcachefs.")
+        hintType: info
+        text: _("A prebuilt bcachefs module from module.bcachefs.org is installed for your running kernel ({{ kernelVersion }}, {{ arch }}). No local build is required.")
         modifiers:
           - type: hidden
             constraint:
-              operator: truthy
+              operator: ne
               arg0:
-                prop: kernelOk
+                prop: moduleSource
+              arg1: prebuilt
+      - type: hint
+        hintType: info
+        text: _("The bcachefs module is built locally with DKMS for your running kernel ({{ kernelVersion }}, {{ arch }}) and rebuilds on every kernel update. Prebuilt modules are published for Debian amd64 and arm64 kernels, so the Proxmox kernel always uses DKMS. The module builds as C and needs only the matching kernel headers — no Rust toolchain is required.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: or
+              arg0:
+                operator: ne
+                arg0:
+                  prop: moduleSource
+                arg1: dkms
+              arg1:
+                operator: falsy
+                arg0:
+                  prop: moduleBuilt
+      - type: hint
+        hintType: error
+        text: _("DKMS is installed but no bcachefs module was built for your running kernel ({{ kernelVersion }}, {{ arch }}). Check the build log under /var/lib/dkms/bcachefs/*/build/make.log — the usual cause is missing or mismatched kernel headers for this kernel.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: or
+              arg0:
+                operator: ne
+                arg0:
+                  prop: moduleSource
+                arg1: dkms
+              arg1:
+                operator: truthy
+                arg0:
+                  prop: moduleBuilt
+      - type: hint
+        hintType: warning
+        text: _("No bcachefs kernel module is installed for your running kernel ({{ kernelVersion }}, {{ arch }}). Apply changes to install one — a prebuilt module where available, otherwise DKMS.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: ne
+              arg0:
+                prop: moduleSource
+              arg1: none
+      - type: hint
+        hintType: warning
+        text: _("The bcachefs module is installed but not currently loaded. A reboot may be required to load it.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: or
+              arg0:
+                operator: truthy
+                arg0:
+                  prop: moduleLoaded
+              arg1:
+                operator: falsy
+                arg0:
+                  prop: moduleBuilt
       - type: divider
         title: _("Repository")
       - type: select

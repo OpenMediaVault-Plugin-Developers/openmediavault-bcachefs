@@ -42,6 +42,9 @@ data:
             failed:
               value: _("failed")
               class: omv-background-color-pair-red
+            evacuating:
+              value: _("evacuating")
+              class: omv-background-color-pair-red
             spare:
               value: _("spare")
               class: omv-background-color-pair-blue
@@ -105,7 +108,7 @@ data:
               state: "ro"
       - type: iconButton
         icon: mdi:alert-circle-outline
-        tooltip: _("Set failed")
+        tooltip: _("Set failed / evacuating")
         confirmationDialogConfig:
           template: confirmation-danger
           message: _("Marking a device as failed tells bcachefs to stop using it. Make sure the filesystem still has enough replicas/devices to keep your data accessible. Continue?")
@@ -117,6 +120,10 @@ data:
               arg0:
                 prop: state
               arg1: "failed"
+            - operator: ne
+              arg0:
+                prop: state
+              arg1: "evacuating"
         execute:
           type: request
           request:

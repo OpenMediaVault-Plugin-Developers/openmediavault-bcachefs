@@ -71,15 +71,52 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $obj = $db->get("conf.service.bcachefs");
 
         $kernelRelease = trim(shell_exec('uname -r') ?: '');
-        $parts = explode('.', $kernelRelease);
-        $major = intval($parts[0] ?? 0);
-        $minor = intval(explode('-', $parts[1] ?? '0')[0]);
-        $kernelOk = ($major > 6) || ($major === 6 && $minor >= 16);
+        $arch = trim(shell_exec('dpkg --print-architecture 2>/dev/null') ?: '');
+
+        // bcachefs is no longer maintained in mainline, so the module always
+        // comes from one of two out-of-tree providers. Report which one is in
+        // effect for the running kernel so the UI can explain the situation.
+        //   prebuilt - a precompiled .ko from module.bcachefs.org (installed to
+        //              updates/bcachefs.ko by omv-bcachefs-module).
+        //   dkms     - built locally by bcachefs-kernel-dkms (installs under
+        //              updates/dkms/), required for arm64 and the Proxmox kernel.
+        //   none     - no module yet; Apply changes to install one.
+        $moduleLoaded = ('1' === trim(shell_exec(
+            "lsmod | awk '\$1 == \"bcachefs\" { print 1; exit }'") ?: ''));
+        $prebuilt = ('' !== $kernelRelease) && file_exists(
+            "/lib/modules/{$kernelRelease}/updates/bcachefs.ko");
+        $dkmsInstalled = (false !== strpos(trim(shell_exec(
+            "dpkg-query -W -f='\${Status}' bcachefs-kernel-dkms 2>/dev/null") ?: ''),
+            'install ok installed'));
+
+        if ($prebuilt) {
+            $moduleSource = 'prebuilt';
+        } elseif ($dkmsInstalled) {
+            $moduleSource = 'dkms';
+        } else {
+            $moduleSource = 'none';
+        }
+
+        // Generic build verification: is a loadable bcachefs module actually
+        // present for the running kernel? This catches the case where DKMS is
+        // installed but the build produced nothing (e.g. a real C build break
+        // or missing headers). Note a missing Rust toolchain is NOT a failure:
+        // the DKMS build falls back to a C-only module on its own.
+        $rc = 1;
+        if ('' !== $kernelRelease) {
+            $dummy = [];
+            @exec('modinfo -k ' . escapeshellarg($kernelRelease) .
+                ' bcachefs 2>/dev/null', $dummy, $rc);
+        }
+        $moduleBuilt = $moduleLoaded || (0 === $rc);
 
         return [
             "suite"         => $obj->get("suite"),
-            "kernelOk"      => $kernelOk,
             "kernelVersion" => $kernelRelease,
+            "arch"          => $arch,
+            "moduleLoaded"  => $moduleLoaded,
+            "moduleBuilt"   => $moduleBuilt,
+            "moduleSource"  => $moduleSource,
         ];
     }
 
@@ -914,7 +951,7 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
     }
 
     /**
-     * Change a device's state (rw, ro, failed, spare).
+     * Change a device's state (rw, ro, failed/evacuating, spare).
      */
     public function setDeviceState($params, $context)
     {
@@ -922,10 +959,18 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.bcachefs.setdevicestate");
         $state = $params['state'];
         $dev   = $params['devicefile'];
+        // Newer bcachefs-tools renamed the "failed" device state to
+        // "evacuating" in `bcachefs device set-state` (valid values became
+        // rw, ro, evacuating, spare). Accept either name from the UI and send
+        // whichever token the installed tool understands.
+        if (in_array($state, ['failed', 'evacuating'], true)) {
+            $state = $this->bcachefsFailedStateToken();
+        }
         $cmdArgs = ["device", "set-state"];
-        // Forcing past the safety check is required to mark a device failed or
-        // spare while it still holds data.
-        if (in_array($state, ['failed', 'spare'], true)) {
+        // Forcing past the safety check is required to take a device out of
+        // service (failed/evacuating) or mark it spare while it still holds
+        // data.
+        if (in_array($state, ['failed', 'evacuating', 'spare'], true)) {
             $cmdArgs[] = "--force";
         }
         $cmdArgs[] = $state;
@@ -933,6 +978,19 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $cmd = new \OMV\System\Process("bcachefs", $cmdArgs);
         $cmd->setRedirect2to1();
         $cmd->execute();
+    }
+
+    /**
+     * Return the token the installed bcachefs-tools uses for the "stop using
+     * this device" state: "evacuating" on newer releases, "failed" on older
+     * ones. Falls back to "failed" when the tool cannot be probed.
+     */
+    private function bcachefsFailedStateToken(): string
+    {
+        $out = [];
+        @exec('/usr/sbin/bcachefs device set-state --help 2>&1', $out);
+        return (false !== stripos(implode("\n", $out), 'evacuating'))
+            ? 'evacuating' : 'failed';
     }
 
     // -------------------------------------------------------------------------
@@ -1108,8 +1166,9 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
     // -------------------------------------------------------------------------
 
     /**
-     * Scan /proc/mounts and return all mounted bcachefs filesystems with
-     * UUID, mount point, first device, label, and encryption status.
+     * Scan /proc/mounts for mounted bcachefs filesystems and return each with
+     * its UUID, mount point, member device list (from sysfs), label, and
+     * encryption status.
      */
     private function getMountedBcachefsFilesystems(): array
     {
@@ -1132,9 +1191,35 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                 continue;
             $seen[$uuid] = true;
 
-            // For multi-device filesystems /proc/mounts uses "dev1:dev2:..."
-            $allDevices  = explode(':', $parts[0]);
-            $firstDevice = $allDevices[0];
+            // Enumerate member devices from sysfs. Current bcachefs kernels no
+            // longer expose the colon-separated member list in /proc/mounts —
+            // the source there is frequently a single path such as
+            // /dev/disk/by-uuid/<UUID> — so /sys/fs/bcachefs/<uuid>/dev-*/block
+            // is the reliable source. The dev-N index matches the superblock
+            // member order.
+            $allDevices = [];
+            foreach (glob("/sys/fs/bcachefs/{$uuid}/dev-*", GLOB_ONLYDIR) ?: []
+                    as $devDir) {
+                if (!preg_match('#/dev-(\d+)$#', $devDir, $dm))
+                    continue;
+                $target = @readlink("{$devDir}/block");
+                if ($target === false || $target === null)
+                    continue;
+                $kname  = basename($target);
+                $dmName = @file_get_contents("/sys/block/{$kname}/dm/name");
+                $allDevices[intval($dm[1])] =
+                    (is_string($dmName) && trim($dmName) !== '')
+                        ? "/dev/mapper/" . trim($dmName)
+                        : "/dev/" . $kname;
+            }
+            ksort($allDevices);
+            $allDevices = array_values($allDevices);
+
+            // Older kernels listed the members colon-separated in /proc/mounts;
+            // fall back to that when sysfs gave us nothing.
+            if (empty($allDevices))
+                $allDevices = explode(':', $parts[0]);
+            $firstDevice = $allDevices[0] ?? $parts[0];
 
             // Query the superblock for the filesystem label and encryption flag.
             // Try each device in turn; on multi-device arrays the first listed

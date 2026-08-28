@@ -1,0 +1,222 @@
+#!/bin/bash
+# Provision the out-of-tree bcachefs kernel module.
+#
+# bcachefs is no longer maintained in the mainline kernel, so this plugin never
+# relies on any in-tree bcachefs.ko. It always provides the externally-built
+# module through one of two providers:
+#
+#   prebuilt - a precompiled module downloaded from https://module.bcachefs.org,
+#              built for one exact kernel. No local build and no toolchain
+#              required. Published for the Debian amd64 and arm64 kernels
+#              upstream builds against (e.g. the backports kernel most OMV
+#              systems run); the mirror serves modules as .ko or, for newer
+#              builds, xz-compressed .ko.xz.
+#   dkms     - the bcachefs-kernel-dkms package, compiled locally. The fallback
+#              for the Proxmox kernel, uncommon kernel flavours, and any kernel
+#              without a prebuilt match. Requires kernel headers; the module
+#              itself still builds as C, so no Rust toolchain is needed for it.
+#
+# This script handles only the prebuilt provider: it locates and installs a
+# matching module, or exits non-zero so the caller can fall back to DKMS. The
+# vermagic check below is what makes unmatched kernels (Proxmox, arm64, a
+# kernel newer than the mirror) fall through to DKMS automatically instead of
+# installing an unloadable module.
+#
+# Usage:
+#   omv-bcachefs-module detect  [KVER]   print the provider that would be used
+#   omv-bcachefs-module install [KVER]   install the prebuilt module, or fail
+#
+# KVER defaults to the running kernel (uname -r).
+#
+# Environment:
+#   BCACHEFS_MODULE_CHANNEL   release (default) or snapshot. Mirrors the apt
+#                             "suite" setting: release picks tagged module
+#                             versions, snapshot also considers git builds.
+
+set -euo pipefail
+
+BASE_URL="${BCACHEFS_MODULE_BASEURL:-https://module.bcachefs.org/debian}"
+CHANNEL="${BCACHEFS_MODULE_CHANNEL:-release}"
+
+log() { echo "omv-bcachefs-module: $*" >&2; }
+
+# Map the running kernel to the directory name used on the mirror. Upstream
+# keys directories by the kernel *package* version (e.g. "7.0.13-1"), which is
+# not the same as uname -r, so derive it from the package that owns the kernel
+# image and fall back to uname -r.
+kernel_pkg_version() {
+    local kver="$1" img="/boot/vmlinuz-$1" pkg ver
+    pkg=$(dpkg -S "$img" 2>/dev/null | head -n1 | cut -d: -f1) || true
+    [ -n "$pkg" ] || return 1
+    ver=$(dpkg-query -W -f='${Version}' "$pkg" 2>/dev/null) || return 1
+    [ -n "$ver" ] || return 1
+    # Strip any epoch prefix (e.g. "1:7.0.13-1" -> "7.0.13-1").
+    printf '%s\n' "${ver#*:}"
+}
+
+candidate_dirs() {
+    local kver="$1" pv
+    pv=$(kernel_pkg_version "$kver" 2>/dev/null) || true
+    [ -n "$pv" ] && printf '%s\n' "$pv"
+    printf '%s\n' "$kver"
+}
+
+# List bcachefs module filenames in a mirror directory index. The mirror
+# serves plain ".ko" for older builds and xz-compressed ".ko.xz" for newer
+# ones, sometimes side by side in the same directory.
+list_modules() {
+    curl -fsSL --max-time 30 "$1" 2>/dev/null \
+        | grep -oE 'bcachefs-v[0-9][A-Za-z0-9._-]*\.ko(\.xz)?' \
+        | sort -u
+}
+
+# Choose the newest module from a list on stdin, honouring the channel. Release
+# considers only tagged versions (bcachefs-vX.Y.Z.ko[.xz]); snapshot considers
+# all, including git builds (bcachefs-vX.Y.Z-N-gHASH.ko[.xz]). The chosen
+# filename is returned with its extension intact.
+pick_module() {
+    local files rel
+    files=$(cat)
+    [ -n "$files" ] || return 1
+    if [ "$CHANNEL" = "release" ]; then
+        rel=$(printf '%s\n' "$files" \
+            | grep -E '^bcachefs-v[0-9]+(\.[0-9]+)*\.ko(\.xz)?$') || true
+        [ -n "$rel" ] && files="$rel"
+    fi
+    # Sort by the version substring but keep (and return) the whole filename.
+    printf '%s\n' "$files" \
+        | sed -E 's/^bcachefs-v(.+)\.ko(\.xz)?$/\1\t&/' \
+        | sort -V \
+        | tail -n1 \
+        | cut -f2-
+}
+
+# Find a prebuilt module for KVER. On success prints "<dir-url>\t<filename>".
+find_prebuilt() {
+    local kver="$1" arch dir url files file
+    arch=$(dpkg --print-architecture)
+    while read -r dir; do
+        [ -n "$dir" ] || continue
+        url="$BASE_URL/$arch/$dir/"
+        files=$(list_modules "$url") || true
+        [ -n "$files" ] || continue
+        file=$(printf '%s\n' "$files" | pick_module) || true
+        [ -n "$file" ] || continue
+        printf '%s\t%s\n' "$url" "$file"
+        return 0
+    done < <(candidate_dirs "$kver" | awk 'NF && !seen[$0]++')
+    return 1
+}
+
+dkms_installed() {
+    dpkg-query -W -f='${Status}' bcachefs-kernel-dkms 2>/dev/null \
+        | grep -q 'install ok installed'
+}
+
+install_prebuilt() {
+    local kver="$1" line url file dest marker tmp dl ko vermagic
+    # Single provider: if DKMS is already installed it owns the module (and
+    # builds for new kernels via its own hook). Don't also drop a prebuilt .ko
+    # for the same kernel, or depmod sees two bcachefs modules. Report success
+    # so callers treat the kernel as handled.
+    if dkms_installed; then
+        log "bcachefs-kernel-dkms is installed; leaving DKMS as the module provider"
+        return 0
+    fi
+    # The prebuilt path needs these to fetch and validate the module. If any is
+    # missing we cannot safely install a module, so fall back to DKMS.
+    for tool in curl modinfo depmod; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            log "required tool '$tool' not found; cannot use prebuilt module"
+            return 1
+        fi
+    done
+    line=$(find_prebuilt "$kver") || { log "no prebuilt module for kernel $kver"; return 1; }
+    url=${line%%$'\t'*}
+    file=${line#*$'\t'}
+    dest="/lib/modules/$kver/updates"
+    marker="$dest/.bcachefs-prebuilt-version"
+
+    if [ -f "$marker" ] && [ "$(cat "$marker")" = "$file" ] && [ -f "$dest/bcachefs.ko" ]; then
+        log "prebuilt $file already installed for $kver"
+        maybe_load "$kver"
+        return 0
+    fi
+
+    tmp=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" RETURN
+
+    dl="$tmp/$file"
+    if ! curl -fsSL --max-time 180 -o "$dl" "$url$file"; then
+        log "download failed: $url$file"
+        return 1
+    fi
+
+    # Normalise to a plain, uncompressed module at $ko. Newer mirror builds are
+    # xz-compressed (bcachefs-v*.ko.xz); older ones are plain .ko.
+    ko="$tmp/bcachefs.ko"
+    case "$file" in
+        *.ko.xz)
+            if ! command -v xz >/dev/null 2>&1; then
+                log "prebuilt $file is xz-compressed but 'xz' is unavailable; falling back to DKMS"
+                return 1
+            fi
+            if ! xz -dc "$dl" > "$ko"; then
+                log "failed to decompress $file"
+                return 1
+            fi
+            ;;
+        *.ko)
+            mv "$dl" "$ko"
+            ;;
+        *)
+            log "unexpected prebuilt module filename '$file'"
+            return 1
+            ;;
+    esac
+
+    # A module is built for one exact kernel. Refuse a mismatch rather than
+    # install one modprobe would reject anyway; the caller then falls back to
+    # DKMS.
+    vermagic=$(modinfo -F vermagic "$ko" 2>/dev/null | awk '{print $1}') || true
+    if [ "$vermagic" != "$kver" ]; then
+        log "vermagic mismatch (module is for '${vermagic:-unknown}', kernel is '$kver'); not using prebuilt $file"
+        return 1
+    fi
+
+    install -d "$dest"
+    install -m 0644 "$ko" "$dest/bcachefs.ko"
+    printf '%s\n' "$file" > "$marker"
+    depmod -a "$kver"
+    log "installed prebuilt $file for kernel $kver"
+    maybe_load "$kver"
+    return 0
+}
+
+# Load the module only when provisioning the currently running kernel.
+maybe_load() {
+    local kver="$1"
+    if [ "$kver" = "$(uname -r)" ] && ! lsmod | grep -q '^bcachefs '; then
+        modprobe bcachefs 2>/dev/null || true
+    fi
+}
+
+detect() {
+    if find_prebuilt "$1" >/dev/null 2>&1; then
+        echo prebuilt
+    else
+        echo dkms
+    fi
+}
+
+main() {
+    local cmd="${1:-install}" kver="${2:-$(uname -r)}"
+    case "$cmd" in
+        detect)  detect  "$kver" ;;
+        install) install_prebuilt "$kver" ;;
+        *) echo "usage: $0 {detect|install} [kernel-version]" >&2; exit 2 ;;
+    esac
+}
+
+main "$@"

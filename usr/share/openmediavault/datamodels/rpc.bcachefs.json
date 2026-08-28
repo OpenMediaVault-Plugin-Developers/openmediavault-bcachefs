@@ -217,7 +217,7 @@
         "devicefile": { "type": "string", "required": true },
         "state": {
           "type": "string",
-          "enum": ["rw", "ro", "failed", "spare"],
+          "enum": ["rw", "ro", "failed", "evacuating", "spare"],
           "required": true
         }
       }
