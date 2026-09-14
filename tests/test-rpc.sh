@@ -889,6 +889,75 @@ else
 
     assert_rpc_fails "setDeviceState — invalid state" "Bcachefs" "setDeviceState" \
         "{\"devicefile\":\"$LAST_DEV\",\"state\":\"bogus\"}"
+
+    # Regression test: removing the *first* member (rather than the last)
+    # leaves a gap in bcachefs's member-slot numbering -- the remaining
+    # device(s) keep their original, higher slot numbers instead of sliding
+    # down to 0..N-1. getDeviceList() used to build its device list by
+    # reindexing sysfs's dev-N entries into a fresh 0..N-1 array and then
+    # matching against `bcachefs show-super`'s "Device N:" blocks by that
+    # recomputed position, so a gap made it read the wrong member's (or a
+    # nonexistent member's) state for a device -- surfacing as an incorrect
+    # RO/failed badge on a device the user never touched, or state "unknown".
+    FIRST_DEV="${DEVICES[0]}"
+    CHECK_DEV="$LAST_DEV"   # distinct from FIRST_DEV whenever count >= 2
+    info "Regression test: removing $FIRST_DEV to open a gap in member-slot numbering"
+
+    assert_rpc_bg "evacuateDevice (gap regression)" "Bcachefs" "evacuateDevice" \
+        "{\"devicefile\":\"$FIRST_DEV\"}"
+    assert_rpc_bg "removeDevice (gap regression)" "Bcachefs" "removeDevice" \
+        "{\"devicefile\":\"$FIRST_DEV\"}"
+
+    # Force the surviving device to a known, non-default state so a
+    # misaligned lookup (wrong device, or a missing/"unknown" entry) is
+    # unambiguous rather than accidentally matching the default state.
+    assert_rpc "setDeviceState — ro (gap regression)" "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$CHECK_DEV\",\"state\":\"ro\"}" >/dev/null
+
+    GAP_DEV_LIST=$(rpc "Bcachefs" "getDeviceList" "{}" 2>/dev/null || echo "[]")
+    GAP_ERR=$(mktemp)
+    # getDeviceList reports device-mapper members as /dev/mapper/<name> (what
+    # the UI shows), while $DEVICES holds the readlink -f canonical form
+    # (e.g. /dev/dm-N) set up at the top of this script. Resolve both sides
+    # with realpath before comparing so this works for plain disks and dm
+    # devices alike.
+    if echo "$GAP_DEV_LIST" | python3 -c "
+import sys, json, os
+
+def real(p):
+    try:
+        return os.path.realpath(p)
+    except OSError:
+        return p
+
+rows = [r for r in json.load(sys.stdin) if r.get('filesystem') == '$FS_UUID']
+for r in rows:
+    r['_real'] = real(r.get('devicefile', ''))
+
+assert len(rows) == ${#DEVICES[@]} - 1, \
+    'expected ${#DEVICES[@]} - 1 device(s) after removal, got %d: %r' % (len(rows), rows)
+assert not any(r['_real'] == '$FIRST_DEV' for r in rows), \
+    'removed device $FIRST_DEV still listed: %r' % rows
+assert not any(r.get('state') == 'unknown' for r in rows), \
+    'a device reported state unknown after the slot gap: %r' % rows
+check = next((r for r in rows if r['_real'] == '$CHECK_DEV'), None)
+assert check is not None, '$CHECK_DEV row missing from getDeviceList (rows: %r)' % rows
+assert check.get('state') == 'ro', \
+    'expected $CHECK_DEV state ro, got %r' % check.get('state')
+" 2>"$GAP_ERR"; then
+        _pass "getDeviceList — correct device/state mapping after member-slot gap"
+    else
+        _fail "getDeviceList — device/state misaligned after member-slot gap" \
+            "$(cat "$GAP_ERR" 2>/dev/null)"
+    fi
+    rm -f "$GAP_ERR"
+
+    # Restore state and membership so later sections see the expected device
+    # count and every device back in the rw state.
+    rpc "Bcachefs" "setDeviceState" \
+        "{\"devicefile\":\"$CHECK_DEV\",\"state\":\"rw\"}" &>/dev/null || true
+    assert_rpc_bg "addDevice (gap regression re-add)" "Bcachefs" "addDevice" \
+        "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$FIRST_DEV\"}"
 fi
 
 # ===========================================================================
