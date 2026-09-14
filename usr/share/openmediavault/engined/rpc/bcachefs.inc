@@ -851,12 +851,16 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             }
             $members = $this->parseSuperMembers($superText);
 
-            // Members are listed in member-index order; the device list from
-            // /proc/mounts is assumed to follow the same order. Operations
-            // always target the real device path shown in the row.
-            $i = 0;
-            foreach ($devices as $d) {
-                $mem = $members[$i] ?? [
+            // $devices is keyed by member-slot number (see
+            // getMountedBcachefsFilesystems()), which matches the "Device N:"
+            // numbering parsed out of `show-super` above. Match on that slot
+            // number directly rather than a freshly counted index -- slot
+            // numbers can have gaps (e.g. after a device was removed), so a
+            // sequential counter drifts out of sync with show-super's
+            // numbering and ends up reporting one device's state against a
+            // different device's row.
+            foreach ($devices as $slot => $d) {
+                $mem = $members[$slot] ?? [
                     'label' => '', 'state' => '', 'size' => '', 'durability' => '',
                 ];
                 $result[] = [
@@ -869,7 +873,6 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                     "size"       => $mem['size'],
                     "durability" => $mem['durability'],
                 ];
-                $i++;
             }
         }
         return $result;
@@ -1212,14 +1215,20 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
                         ? "/dev/mapper/" . trim($dmName)
                         : "/dev/" . $kname;
             }
+            // Keep this keyed by the true member-slot number (not
+            // reindexed) so callers can correlate each device with the
+            // matching "Device N:" block in `bcachefs show-super` output.
+            // Slot numbers are not necessarily contiguous from 0 -- e.g. a
+            // removed device leaves a gap -- so collapsing them with
+            // array_values() here would misalign getDeviceList()'s state
+            // lookup against the wrong device.
             ksort($allDevices);
-            $allDevices = array_values($allDevices);
 
             // Older kernels listed the members colon-separated in /proc/mounts;
             // fall back to that when sysfs gave us nothing.
             if (empty($allDevices))
                 $allDevices = explode(':', $parts[0]);
-            $firstDevice = $allDevices[0] ?? $parts[0];
+            $firstDevice = !empty($allDevices) ? reset($allDevices) : $parts[0];
 
             // Query the superblock for the filesystem label and encryption flag.
             // Try each device in turn; on multi-device arrays the first listed
