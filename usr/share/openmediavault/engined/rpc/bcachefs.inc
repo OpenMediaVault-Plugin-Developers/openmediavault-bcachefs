@@ -41,6 +41,10 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getFilesystems");
         // Filesystem usage / options
         $this->registerMethod("getUsage");
+        $this->registerMethod("getDamageList");
+        $this->registerMethod("getDamageDetails");
+        $this->registerMethod("clearDamage");
+        $this->registerMethod("clearAllDamage");
         $this->registerMethod("getFilesystemOptions");
         $this->registerMethod("setFilesystemOptions");
         // Device management
@@ -756,6 +760,114 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
         ];
     }
 
+    // -------------------------------------------------------------------------
+    // Damage tracking
+    // -------------------------------------------------------------------------
+
+    /**
+     * List the files a repair cost data, from the damage records bcachefs
+     * keeps (bcachefs-tools 1.39.5 and newer). Paths are relative to the
+     * filesystem's mount point.
+     */
+    public function getDamageList($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.getfilesystem");
+        $this->assertDamageSupported();
+        $mnt = $this->getFsByUuid($params['uuid'])['mountpoint'];
+
+        if (0 !== $this->runBcachefs(["damage", "ls", "-R", $mnt],
+                $stdout, $stderr)) {
+            throw new \OMV\Exception("Failed to list damaged files: %s",
+                trim($stderr));
+        }
+
+        $result = [];
+        $parsed = \OMV\System\Filesystem\Bcachefs::parseDamageList(
+            explode("\n", $stdout));
+        foreach ($parsed as $entry) {
+            $path   = $entry['path'];
+            $errors = $entry['errors'];
+            // A file whose own name ends in ": <word>" parses as a shorter
+            // path plus an error; the filesystem says which one it is.
+            if (!file_exists("{$mnt}/{$path}") &&
+                    file_exists("{$mnt}/{$entry['line']}")) {
+                $path   = $entry['line'];
+                $errors = [];
+            }
+            $abs = "{$mnt}/{$path}";
+            $result[] = [
+                "path"     => $path,
+                "fullpath" => $abs,
+                "type"     => is_dir($abs) ? "directory" : "file",
+                "errors"   => implode(", ", $errors),
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * Show every error recorded against one file, with occurrence counts
+     * and first/last times. Runs in the background for the task dialog.
+     */
+    public function getDamageDetails($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.damagepath");
+        $this->assertDamageSupported();
+        $mnt  = $this->getFsByUuid($params['uuid'])['mountpoint'];
+        $path = $this->resolveDamagePath($mnt, $params['path']);
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename)
+          use ($path) {
+            $cmd = new \OMV\System\Process("bcachefs",
+                ["damage", escapeshellarg($path)]);
+            $cmd->setRedirect2to1();
+            if (0 !== ($exitStatus = $this->exec($cmd, $output,
+                    $bgOutputFilename))) {
+                throw new \OMV\ExecException($cmd, $output, $exitStatus);
+            }
+            if (empty(array_filter($output, 'strlen'))) {
+                file_put_contents($bgOutputFilename,
+                    gettext("No damage is recorded for this file.") . "\n",
+                    FILE_APPEND);
+            }
+        });
+    }
+
+    /**
+     * Drop the damage record for one file or directory, once the user has
+     * dealt with it. Snapshots keep their own view of the record.
+     */
+    public function clearDamage($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.damagepath");
+        $this->assertDamageSupported();
+        $mnt  = $this->getFsByUuid($params['uuid'])['mountpoint'];
+        $path = $this->resolveDamagePath($mnt, $params['path']);
+        if (0 !== $this->runBcachefs(["damage", "clear", $path],
+                $stdout, $stderr)) {
+            throw new \OMV\Exception("Failed to clear damage on '%s': %s",
+                $params['path'], trim($stderr));
+        }
+    }
+
+    /**
+     * Drop every damage record on a filesystem.
+     */
+    public function clearAllDamage($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.bcachefs.getfilesystem");
+        $this->assertDamageSupported();
+        $mnt = $this->getFsByUuid($params['uuid'])['mountpoint'];
+        if (0 !== $this->runBcachefs(["damage", "clear", "-R", $mnt],
+                $stdout, $stderr)) {
+            throw new \OMV\Exception("Failed to clear damage records: %s",
+                trim($stderr));
+        }
+    }
+
     /**
      * Read the current IO-path options for a mounted filesystem from sysfs.
      * Changing these triggers bcachefs reconcile to migrate existing data.
@@ -1298,6 +1410,57 @@ class Bcachefs extends \OMV\Rpc\ServiceAbstract
             }
         }
         throw new \OMV\Exception("Filesystem '%s' not found.", $uuid);
+    }
+
+    /**
+     * Run bcachefs with the given (unescaped) arguments, capturing stdout
+     * and stderr separately. Returns the exit status.
+     */
+    private function runBcachefs(array $args, &$stdout, &$stderr): int
+    {
+        $proc = proc_open(array_merge(["/usr/sbin/bcachefs"], $args),
+            [1 => ["pipe", "w"], 2 => ["pipe", "w"]], $pipes);
+        if (!is_resource($proc)) {
+            $stdout = "";
+            $stderr = "failed to run bcachefs";
+            return -1;
+        }
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        return proc_close($proc);
+    }
+
+    /**
+     * Damage tracking arrived in bcachefs-tools 1.39.5; fail with a clear
+     * message on older tools instead of an unknown-command error.
+     */
+    private function assertDamageSupported(): void
+    {
+        if (0 !== $this->runBcachefs(["damage", "--help"], $stdout, $stderr)) {
+            throw new \OMV\Exception(
+                "Damage tracking requires bcachefs-tools 1.39.5 or newer.");
+        }
+    }
+
+    /**
+     * Resolve a path relative to a mount point and make sure it stays on
+     * that filesystem (no "..", no symlink out of it). Returns the
+     * absolute path.
+     */
+    private function resolveDamagePath(string $mnt, string $relPath): string
+    {
+        $mntReal = realpath($mnt);
+        $abs = realpath(rtrim($mnt, '/') . '/' . ltrim($relPath, '/'));
+        if ($mntReal === false || $abs === false) {
+            throw new \OMV\Exception("Path '%s' does not exist.", $relPath);
+        }
+        if ($abs !== $mntReal && strpos($abs, $mntReal . '/') !== 0) {
+            throw new \OMV\Exception("Path '%s' is outside the filesystem.",
+                $relPath);
+        }
+        return $abs;
     }
 
     /**

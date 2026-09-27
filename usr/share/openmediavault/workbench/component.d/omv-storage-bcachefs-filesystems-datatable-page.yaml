@@ -70,6 +70,15 @@ data:
           type: url
           url: "/storage/bcachefs/filesystems/usage/{{ _selected[0].uuid }}"
       - type: iconButton
+        icon: mdi:file-alert-outline
+        tooltip: _("Damaged files")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: url
+          url: "/storage/bcachefs/filesystems/damage/{{ _selected[0].uuid }}"
+      - type: iconButton
         icon: mdi:tune
         tooltip: _("Edit options")
         enabledConstraints:

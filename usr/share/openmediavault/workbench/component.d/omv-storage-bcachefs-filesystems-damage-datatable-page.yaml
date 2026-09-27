@@ -1,0 +1,94 @@
+version: "1.0"
+type: component
+data:
+  name: omv-storage-bcachefs-filesystems-damage-datatable-page
+  type: datatablePage
+  config:
+    autoReload: false
+    hasSearchField: true
+    # Damage records have no "uuid"; key rows by their path.
+    rowId: path
+    stateId: 3c9e7a52-1f4d-4b8e-9a61-d27b05e8c4f3
+    sorters:
+      - dir: asc
+        prop: path
+    store:
+      proxy:
+        service: Bcachefs
+        get:
+          method: getDamageList
+          params:
+            uuid: "{{ _routeParams.uuid }}"
+    columns:
+      - name: _("Path")
+        prop: path
+        flexGrow: 3
+        sortable: true
+      - name: _("Type")
+        prop: type
+        flexGrow: 1
+        sortable: true
+      - name: _("Errors")
+        prop: errors
+        flexGrow: 3
+        sortable: true
+      - name: _("Full path")
+        prop: fullpath
+        flexGrow: 3
+        sortable: true
+        hidden: true
+        cellTemplateName: copyToClipboard
+    actions:
+      - type: iconButton
+        icon: mdi:information-outline
+        tooltip: _("Details")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Recorded damage")
+              startOnInit: true
+              request:
+                service: Bcachefs
+                method: getDamageDetails
+                params:
+                  uuid: "{{ _routeParams.uuid }}"
+                  path: "{{ _selected[0].path }}"
+      - type: iconButton
+        icon: mdi:check
+        tooltip: _("Clear damage record")
+        confirmationDialogConfig:
+          template: confirmation
+          message: _("Clear the damage record for the selected file? Do this once you have restored or replaced it. The data that was lost is not recovered.")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: clearDamage
+            params:
+              uuid: "{{ _routeParams.uuid }}"
+              path: "{{ _selected[0].path }}"
+      - type: iconButton
+        icon: mdi:check-all
+        tooltip: _("Clear all damage records")
+        confirmationDialogConfig:
+          template: confirmation-danger
+          message: _("Clear every damage record on this filesystem? Afterwards there is no record of which files lost data.")
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: clearAllDamage
+            params:
+              uuid: "{{ _routeParams.uuid }}"
+      - type: iconButton
+        icon: mdi:refresh
+        tooltip: _("Refresh")
+        execute:
+          type: reload
