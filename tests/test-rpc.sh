@@ -437,6 +437,58 @@ else
 fi
 
 # ===========================================================================
+section "Damage tracking"
+# ===========================================================================
+
+# A freshly formatted filesystem has no damage records, and producing real
+# damage needs a failed repair, so these cover the RPC plumbing, the empty
+# case and path validation. Parsing of populated output is covered by
+# tests/test-parsers.php.
+if /usr/sbin/bcachefs damage --help &>/dev/null; then
+    DAMAGE_FILE="damage-test.txt"
+    echo "damage test" > "$MNT/$DAMAGE_FILE"
+    sync
+
+    DAMAGE_LIST=$(assert_rpc "getDamageList" "Bcachefs" "getDamageList" \
+        "{\"uuid\":\"$FS_UUID\"}")
+    if [ "$(echo "$DAMAGE_LIST" | python3 -c \
+            'import sys,json; print(len(json.load(sys.stdin)))' 2>/dev/null)" = "0" ]; then
+        _pass "getDamageList — fresh filesystem has no damaged files"
+    else
+        _fail "getDamageList — expected an empty list" "${DAMAGE_LIST:0:200}"
+    fi
+
+    assert_rpc_bg "getDamageDetails — undamaged file" "Bcachefs" "getDamageDetails" \
+        "{\"uuid\":\"$FS_UUID\",\"path\":\"$DAMAGE_FILE\"}"
+    assert_rpc "clearDamage — undamaged file" "Bcachefs" "clearDamage" \
+        "{\"uuid\":\"$FS_UUID\",\"path\":\"$DAMAGE_FILE\"}" >/dev/null
+    assert_rpc "clearAllDamage" "Bcachefs" "clearAllDamage" \
+        "{\"uuid\":\"$FS_UUID\"}" >/dev/null
+
+    assert_rpc_fails "getDamageList — unknown UUID" "Bcachefs" "getDamageList" \
+        '{"uuid":"00000000-0000-0000-0000-000000000000"}'
+    assert_rpc_fails "clearDamage — missing path" "Bcachefs" "clearDamage" \
+        "{\"uuid\":\"$FS_UUID\"}"
+    assert_rpc_fails "clearDamage — empty path" "Bcachefs" "clearDamage" \
+        "{\"uuid\":\"$FS_UUID\",\"path\":\"\"}"
+    assert_rpc_fails "clearDamage — nonexistent path" "Bcachefs" "clearDamage" \
+        "{\"uuid\":\"$FS_UUID\",\"path\":\"no-such-file\"}"
+    assert_rpc_fails "clearDamage — '..' escapes the filesystem" "Bcachefs" \
+        "clearDamage" "{\"uuid\":\"$FS_UUID\",\"path\":\"../../etc/hostname\"}"
+    ln -sfn /etc "$MNT/damage-escape"
+    assert_rpc_fails "clearDamage — symlink escapes the filesystem" "Bcachefs" \
+        "clearDamage" "{\"uuid\":\"$FS_UUID\",\"path\":\"damage-escape/hostname\"}"
+    assert_rpc_fails "getDamageDetails — symlink escapes the filesystem" "Bcachefs" \
+        "getDamageDetails" "{\"uuid\":\"$FS_UUID\",\"path\":\"damage-escape/hostname\"}"
+
+    rm -f "$MNT/damage-escape" "$MNT/$DAMAGE_FILE"
+else
+    info "bcachefs-tools has no 'damage' command (needs 1.39.5+)"
+    assert_rpc_fails "getDamageList — unsupported tools report an error" \
+        "Bcachefs" "getDamageList" "{\"uuid\":\"$FS_UUID\"}"
+fi
+
+# ===========================================================================
 section "Subvolumes — create"
 # ===========================================================================
 
