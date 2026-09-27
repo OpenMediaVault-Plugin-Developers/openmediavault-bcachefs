@@ -2,6 +2,8 @@ openmediavault-bcachefs (8.0.1) UNRELEASED; urgency=medium
 
   * Use prebuilt kernel modules if available
   * Improve kernel module building
+  * Don't report offline members as device files
+  * Add a damaged files view
 
  -- OpenMediaVault Plugin Developers <plugins@omv-extras.org>  Fri, 28 Aug 2026 00:00:00 +0000
 
