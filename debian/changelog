@@ -4,6 +4,27 @@ openmediavault-bcachefs (8.0.1) UNRELEASED; urgency=medium
   * Improve kernel module building
   * Don't report offline members as device files
   * Add a damaged files view
+  * Fix encrypted filesystems never being reported as encrypted, and read
+    their label and members without needing the passphrase
+  * Fix Grow on the Filesystems page doing nothing; members whose device
+    has grown are now resized
+  * Quote the label, group names and targets when formatting, and validate
+    them before any device is wiped
+  * Scrub every member of a multi-device filesystem, not just one, and
+    report files left damaged after the scrub
+  * Only delete real subvolumes; never fall back to deleting files
+  * Allow deleting snapshots from the Subvolumes page
+  * Don't add the btrfs-only "ssd" mount option
+  * Quote cron job arguments and escape "%" in job comments
+  * Details no longer fails on encrypted filesystems; it shows the usage
+    report when the superblock cannot be read without the passphrase
+  * Add failure domains: per group at creation, per device when adding a
+    device or from the Devices page, and a failure domain report in Usage
+  * Add taking devices offline and bringing them back online; offline
+    members are listed and can be removed
+  * Add the write_degraded and missing_dev_timeout options
+  * Auto-unlock no longer waits for member devices (wait-devices is a no-op
+    in current bcachefs-tools) and reads the key file with unlock -f
 
  -- OpenMediaVault Plugin Developers <plugins@omv-extras.org>  Fri, 28 Aug 2026 00:00:00 +0000
 
