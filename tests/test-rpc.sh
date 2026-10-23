@@ -162,6 +162,45 @@ print(e.get('message', str(d))[:300])" 2>/dev/null \
     return 0
 }
 
+# Print one field of this filesystem's getDeviceList row for a device,
+# matched by resolved path (rows may use /dev/mapper/* or by-id names).
+dev_field() {
+    local dev=$1 field=$2
+    rpc "Bcachefs" "getDeviceList" "{}" 2>/dev/null | python3 -c "
+import sys, json, os
+for r in json.load(sys.stdin):
+    d = r.get('devicefile') or ''
+    if r.get('filesystem') == '$FS_UUID' and d and \
+            os.path.realpath(d) == os.path.realpath('$dev'):
+        v = r.get('$field')
+        print(v if isinstance(v, str) else json.dumps(v))
+        break
+" 2>/dev/null
+}
+
+# Print one field of this filesystem's getDeviceList row by member slot.
+slot_field() {
+    local slot=$1 field=$2
+    rpc "Bcachefs" "getDeviceList" "{}" 2>/dev/null | python3 -c "
+import sys, json
+for r in json.load(sys.stdin):
+    if r.get('filesystem') == '$FS_UUID' and r.get('slot') == $slot:
+        v = r.get('$field')
+        print(v if isinstance(v, str) else json.dumps(v))
+        break
+" 2>/dev/null
+}
+
+# Assert two values are equal.
+assert_eq() {
+    local desc=$1 expected=$2 actual=$3
+    if [ "$expected" = "$actual" ]; then
+        _pass "$desc"
+    else
+        _fail "$desc" "expected '$expected', got '$actual'"
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # Pre-flight checks
 # ---------------------------------------------------------------------------
@@ -379,6 +418,15 @@ else
     _fail "getFilesystemList — expected autounlock=false"
 fi
 
+# Regression: encryption used to be read from the Features line, where
+# bcachefs never lists it. An unencrypted filesystem must still read false
+# (the encrypted case is covered in its own section below).
+if echo "$FS_LIST" | grep -q '"encrypted":false'; then
+    _pass "getFilesystemList — unencrypted filesystem reports encrypted=false"
+else
+    _fail "getFilesystemList — expected encrypted=false"
+fi
+
 # Separately test via assert_rpc for pass/fail tracking.
 assert_rpc "getFilesystemList (assert)"  "Bcachefs" "getFilesystemList" \
     "$LIST_PARAMS" "$FS_UUID" >/dev/null
@@ -420,6 +468,42 @@ fi
 assert_rpc_fails "getUsage — unknown UUID" "Bcachefs" "getUsage" \
     '{"uuid":"00000000-0000-0000-0000-000000000000"}'
 
+# Failure domains: none configured yet, so every device is its own domain.
+# The filesystem has a single replica, so losing any device loses data and
+# separation is (correctly) reported as violated.
+assert_rpc "getUsage — includes failure domain report" "Bcachefs" "getUsage" \
+    "{\"uuid\":\"$FS_UUID\"}" '"failuredomains"' >/dev/null
+if /usr/sbin/bcachefs fs failure-domains --help &>/dev/null; then
+    FD_ERR=$(mktemp)
+    if rpc "Bcachefs" "getFailureDomains" "{\"uuid\":\"$FS_UUID\"}" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+assert len(d['domains']) == ${#DEVICES[@]}, 'expected one domain per device: %r' % d
+assert all(x['devices'] == 1 for x in d['domains']), d
+lost = any(x['lost_bytes'] > 0 for x in d['domains'])
+assert d['separation_violated'] == lost, 'violation flag disagrees with lost data: %r' % d
+" 2>"$FD_ERR"; then
+        _pass "getFailureDomains — one domain per device, violation flag consistent"
+    else
+        _fail "getFailureDomains — unexpected result" "$(tail -1 "$FD_ERR")"
+    fi
+    rm -f "$FD_ERR"
+    assert_rpc_fails "getFailureDomains — unknown UUID" "Bcachefs" "getFailureDomains" \
+        '{"uuid":"00000000-0000-0000-0000-000000000000"}'
+else
+    info "bcachefs-tools has no 'fs failure-domains'; skipping getFailureDomains"
+fi
+
+# New device list fields.
+assert_eq "getDeviceList — device is online" "true" "$(dev_field "${DEVICES[0]}" online)"
+assert_eq "getDeviceList — no failure domain set" "" "$(dev_field "${DEVICES[0]}" failure_domain)"
+FIRST_SLOT=$(dev_field "${DEVICES[0]}" slot)
+if [[ "$FIRST_SLOT" =~ ^[0-9]+$ ]]; then
+    _pass "getDeviceList — reports member slot ($FIRST_SLOT)"
+else
+    _fail "getDeviceList — no member slot" "got '$FIRST_SLOT'"
+fi
+
 # setFilesystemOptions writes to sysfs; only available on kernels that expose
 # the per-filesystem options tree.
 OPTS_DIR="/sys/fs/bcachefs/${FS_UUID}/options"
@@ -432,8 +516,64 @@ if [ -d "$OPTS_DIR" ]; then
     # Restore the original compression so later assertions are unaffected.
     rpc "Bcachefs" "setFilesystemOptions" \
         "{\"uuid\":\"$FS_UUID\",\"compression\":\"lz4\"}" &>/dev/null || true
+
+    # Degraded-write policy and missing-device timeout. sysfs prints choice
+    # options as "[degraded] yes no"; the RPC must return just the choice.
+    OPTS_JSON=$(rpc "Bcachefs" "getFilesystemOptions" "{\"uuid\":\"$FS_UUID\"}" 2>/dev/null)
+    OPT_WD=$(echo "$OPTS_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('write_degraded'))" 2>/dev/null)
+    OPT_MDT=$(echo "$OPTS_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('missing_dev_timeout'))" 2>/dev/null)
+    if [[ "$OPT_WD" =~ ^(degraded|yes|no)$ ]]; then
+        _pass "getFilesystemOptions — write_degraded is a plain choice ($OPT_WD)"
+    else
+        _fail "getFilesystemOptions — write_degraded not parsed" "got '$OPT_WD'"
+    fi
+    assert_rpc "setFilesystemOptions — write_degraded=no, missing_dev_timeout=30" \
+        "Bcachefs" "setFilesystemOptions" \
+        "{\"uuid\":\"$FS_UUID\",\"write_degraded\":\"no\",\"missing_dev_timeout\":30}" >/dev/null
+    OPTS_JSON=$(rpc "Bcachefs" "getFilesystemOptions" "{\"uuid\":\"$FS_UUID\"}" 2>/dev/null)
+    assert_eq "getFilesystemOptions — write_degraded now no" "no" \
+        "$(echo "$OPTS_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('write_degraded'))" 2>/dev/null)"
+    assert_eq "getFilesystemOptions — missing_dev_timeout now 30" "30" \
+        "$(echo "$OPTS_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('missing_dev_timeout'))" 2>/dev/null)"
+    rpc "Bcachefs" "setFilesystemOptions" \
+        "{\"uuid\":\"$FS_UUID\",\"write_degraded\":\"$OPT_WD\",\"missing_dev_timeout\":${OPT_MDT:-0}}" &>/dev/null || true
+    assert_rpc_fails "setFilesystemOptions — invalid write_degraded" "Bcachefs" \
+        "setFilesystemOptions" "{\"uuid\":\"$FS_UUID\",\"write_degraded\":\"sometimes\"}"
+    assert_rpc_fails "setFilesystemOptions — target with shell characters" "Bcachefs" \
+        "setFilesystemOptions" "{\"uuid\":\"$FS_UUID\",\"foreground_target\":\"ssd;true\"}"
 else
     info "Skipping setFilesystemOptions — $OPTS_DIR not present"
+fi
+
+# ===========================================================================
+section "Filesystem — grow (core Filesystems page)"
+# ===========================================================================
+
+# The backend advertises online resize, so OMV offers Grow. It used to fall
+# through to a no-op; it now resizes members whose device has grown. With
+# nothing to grow it must succeed without changing anything.
+assert_rpc "FileSystemMgmt grow — nothing to grow" "FileSystemMgmt" "grow" \
+    "{\"id\":\"$FS_UUID\"}" >/dev/null
+
+# Exercise a real grow when the first test device is an LVM volume with
+# free space in its volume group.
+GROW_SLOT=$(dev_field "${DEVICES[0]}" slot)
+GROW_DM=$(dmsetup info -c --noheadings -o name "${DEVICES[0]}" 2>/dev/null | tr -d ' ')
+if [ -n "$GROW_DM" ] && [[ "$GROW_SLOT" =~ ^[0-9]+$ ]] && \
+        lvs "/dev/mapper/$GROW_DM" &>/dev/null && \
+        lvextend -q -L +256M "/dev/mapper/$GROW_DM" &>/dev/null; then
+    NB_FILE="/sys/fs/bcachefs/${FS_UUID}/dev-${GROW_SLOT}/nbuckets"
+    NB_BEFORE=$(cat "$NB_FILE")
+    assert_rpc "FileSystemMgmt grow — after lvextend" "FileSystemMgmt" "grow" \
+        "{\"id\":\"$FS_UUID\"}" >/dev/null
+    NB_AFTER=$(cat "$NB_FILE")
+    if [ "$NB_AFTER" -gt "$NB_BEFORE" ]; then
+        _pass "grow — member grew from $NB_BEFORE to $NB_AFTER buckets"
+    else
+        _fail "grow — member still has $NB_AFTER buckets (was $NB_BEFORE)"
+    fi
+else
+    info "Skipping real grow — ${DEVICES[0]} is not an LVM volume with free VG space"
 fi
 
 # ===========================================================================
@@ -528,6 +668,35 @@ assert_rpc "getSubvolumes (with subvol)" "Bcachefs" "getSubvolumes" \
 assert_rpc_fails "createSubvolume — slash in name" "Bcachefs" "createSubvolume" \
     "{\"parent\":\"$MNT\",\"name\":\"bad/name\"}"
 
+# The subvolume must be listed from the real `subvolume list --json`
+# output, as a subvolume and not a snapshot. This is what checks the JSON
+# normaliser against the installed bcachefs-tools.
+SV_ERR=$(mktemp)
+if rpc "Bcachefs" "getSubvolumeList" "{}" 2>/dev/null | python3 -c "
+import sys, json
+rows = [r for r in json.load(sys.stdin) if r.get('filesystem') == '$FS_UUID']
+sv = next((r for r in rows if r.get('relpath') == 'testsubvol'), None)
+assert sv is not None, 'testsubvol not listed; rows: %r' % rows
+assert sv['issnapshot'] is False, 'testsubvol listed as a snapshot: %r' % sv
+assert sv['path'] == '$SUBVOL_PATH', sv
+" 2>"$SV_ERR"; then
+    _pass "getSubvolumeList — new subvolume listed, not a snapshot"
+else
+    _fail "getSubvolumeList — subvolume parsing" "$(tail -1 "$SV_ERR")"
+fi
+rm -f "$SV_ERR"
+
+if php -r '
+    require_once "openmediavault/autoloader.inc";
+    require_once "openmediavault/globals.inc";
+    require_once "openmediavault/functions.inc";
+    exit(\OMV\System\Filesystem\Bcachefs::isSubvolume($argv[1]) ? 0 : 1);
+' "$SUBVOL_PATH" 2>/dev/null; then
+    _pass "Bcachefs::isSubvolume — true for a subvolume"
+else
+    _fail "Bcachefs::isSubvolume — false for $SUBVOL_PATH"
+fi
+
 # ===========================================================================
 section "Subvolumes — nested subvolume"
 # ===========================================================================
@@ -548,6 +717,46 @@ if [ ! -d "${SUBVOL_PATH}/nested" ]; then
 else
     _fail "deleteSubvolume (nested) — directory still exists"
 fi
+
+# ===========================================================================
+section "Subvolumes — delete refuses anything that is not a subvolume"
+# ===========================================================================
+
+# deleteSubvolume used to fall back to `rm -rf` on any path whenever
+# `bcachefs subvolume delete` failed. Each of these must fail and leave the
+# target untouched.
+PLAIN_DIR="${MNT}/plain-dir"
+mkdir -p "$PLAIN_DIR" && echo keep > "$PLAIN_DIR/file"
+assert_rpc_fails "deleteSubvolume — plain directory is refused" "Bcachefs" \
+    "deleteSubvolume" "{\"path\":\"$PLAIN_DIR\"}"
+if [ -f "$PLAIN_DIR/file" ]; then
+    _pass "deleteSubvolume — plain directory left intact"
+else
+    _fail "deleteSubvolume — plain directory contents were deleted"
+fi
+rm -rf "$PLAIN_DIR"
+
+assert_rpc_fails "deleteSubvolume — filesystem root is refused" "Bcachefs" \
+    "deleteSubvolume" "{\"path\":\"$MNT\"}"
+if mountpoint -q "$MNT" && [ -d "$SUBVOL_PATH" ]; then
+    _pass "deleteSubvolume — filesystem root still mounted with its contents"
+else
+    _fail "deleteSubvolume — filesystem root was affected"
+fi
+
+OUTSIDE_DIR=$(mktemp -d)
+echo keep > "$OUTSIDE_DIR/file"
+assert_rpc_fails "deleteSubvolume — path outside bcachefs is refused" "Bcachefs" \
+    "deleteSubvolume" "{\"path\":\"$OUTSIDE_DIR\"}"
+if [ -f "$OUTSIDE_DIR/file" ]; then
+    _pass "deleteSubvolume — path outside bcachefs left intact"
+else
+    _fail "deleteSubvolume — path outside bcachefs was deleted"
+fi
+rm -rf "$OUTSIDE_DIR"
+
+assert_rpc_fails "deleteSubvolume — '..' escape out of the mount" "Bcachefs" \
+    "deleteSubvolume" "{\"path\":\"$MNT/../\"}"
 
 # ===========================================================================
 section "Snapshot jobs — CRUD"
@@ -649,6 +858,53 @@ if [ -n "$SNAP_JOB_UUID" ]; then
     else
         _fail "runSnapshotJobBg — count $SNAP_COUNT exceeds retention 5"
     fi
+
+    # Snapshots are listed as snapshots (checks the JSON normaliser).
+    SNAP_ERR=$(mktemp)
+    FIRST_SNAP=$(rpc "Bcachefs" "getSubvolumeList" "{}" 2>/dev/null | python3 -c "
+import sys, json
+rows = [r for r in json.load(sys.stdin) if r.get('filesystem') == '$FS_UUID'
+        and '/test-' in r.get('relpath', '')]
+assert rows, 'no snapshot rows listed'
+assert all(r['issnapshot'] for r in rows), 'snapshot not flagged: %r' % rows
+assert all(r['readonly'] for r in rows), 'read-only snapshot not flagged: %r' % rows
+print(sorted(r['path'] for r in rows)[0])
+" 2>"$SNAP_ERR")
+    if [ -n "$FIRST_SNAP" ]; then
+        _pass "getSubvolumeList — snapshots flagged as read-only snapshots"
+    else
+        _fail "getSubvolumeList — snapshot parsing" "$(tail -1 "$SNAP_ERR")"
+    fi
+    rm -f "$SNAP_ERR"
+
+    # Snapshots can now be deleted from the Subvolumes page.
+    if [ -n "$FIRST_SNAP" ]; then
+        assert_rpc "deleteSubvolume — snapshot" "Bcachefs" "deleteSubvolume" \
+            "{\"path\":\"$FIRST_SNAP\"}" >/dev/null
+        if [ ! -e "$FIRST_SNAP" ]; then
+            _pass "deleteSubvolume — snapshot removed"
+        else
+            _fail "deleteSubvolume — snapshot still exists: $FIRST_SNAP"
+        fi
+    fi
+
+    # Pruning no longer falls back to rm -rf: a plain directory that merely
+    # looks like an old snapshot must survive, and the job must report it.
+    DECOY="$SNAP_DIR/root/test-20000101-000000"
+    mkdir -p "$DECOY" && echo keep > "$DECOY/file"
+    if /usr/sbin/omv-bcachefs-snapshot "$MNT" test 1 &>/dev/null; then
+        _fail "snapshot prune — job succeeded although a prune failed"
+    else
+        _pass "snapshot prune — job reports the failed prune"
+    fi
+    if [ -f "$DECOY/file" ]; then
+        _pass "snapshot prune — non-snapshot directory left intact"
+    else
+        _fail "snapshot prune — non-snapshot directory was deleted"
+    fi
+    REAL_SNAPS=$(find "$SNAP_DIR/root" -maxdepth 1 -name 'test-2*' ! -name 'test-2000*' | wc -l)
+    assert_eq "snapshot prune — real snapshots pruned to retention" "1" "$REAL_SNAPS"
+    rm -rf "$DECOY"
 fi
 
 # ===========================================================================
@@ -711,12 +967,77 @@ section "Scrub jobs — run"
 # ===========================================================================
 
 if [ -n "$SCRUB_JOB_UUID" ]; then
-    DISK_BY_UUID="/dev/disk/by-uuid/$FS_UUID"
-    if [ -e "$DISK_BY_UUID" ]; then
-        assert_rpc "runScrubJob" "Bcachefs" "runScrubJob" \
-            "{\"uuid\":\"$SCRUB_JOB_UUID\"}" >/dev/null
+    SCRUB_LOG=/var/log/omv-bcachefs-scrub.log
+    SCRUB_LOG_LINES=$(wc -l < "$SCRUB_LOG" 2>/dev/null || echo 0)
+    SCRUB_OUT=$(assert_rpc "runScrubJob" "Bcachefs" "runScrubJob" \
+        "{\"uuid\":\"$SCRUB_JOB_UUID\"}")
+
+    # Regression: the scrub used to target /dev/disk/by-uuid/<uuid>, a single
+    # member, so the other members of a multi-device filesystem were never
+    # scrubbed. It must scrub through the mount point.
+    if tail -n +"$((SCRUB_LOG_LINES + 1))" "$SCRUB_LOG" 2>/dev/null \
+            | grep -qF "Starting bcachefs scrub on $MNT (UUID: $FS_UUID)"; then
+        _pass "runScrubJob — scrubs the whole filesystem through its mount point"
     else
-        info "Skipping runScrubJob — $DISK_BY_UUID symlink not present"
+        _fail "runScrubJob — scrub did not run on $MNT" \
+            "$(tail -n 3 "$SCRUB_LOG" 2>/dev/null)"
+    fi
+
+    if /usr/sbin/bcachefs damage --help &>/dev/null; then
+        if echo "$SCRUB_OUT" | grep -q "No damaged files recorded"; then
+            _pass "runScrubJob — reports no damaged files"
+        else
+            _fail "runScrubJob — damage report missing" "${SCRUB_OUT:0:200}"
+        fi
+    fi
+
+    # A filesystem that is not mounted cannot be scrubbed: fail clearly.
+    ORPHAN_PARAMS=$(echo "$SET_SCRUB_PARAMS" | python3 -c "
+import sys, json
+p = json.load(sys.stdin)
+p['fsuuid'] = '00000000-0000-0000-0000-000000000000'
+p['enable'] = False
+p['comment'] = 'rpc scrub unmounted'
+print(json.dumps(p))")
+    ORPHAN_JOB=$(rpc "Bcachefs" "setScrubJob" "$ORPHAN_PARAMS" 2>/dev/null \
+        | python3 -c "import sys,json; print(json.load(sys.stdin).get('uuid',''))" 2>/dev/null)
+    if [ -n "$ORPHAN_JOB" ]; then
+        assert_rpc_fails "runScrubJob — unmounted filesystem fails" "Bcachefs" \
+            "runScrubJob" "{\"uuid\":\"$ORPHAN_JOB\"}"
+        rpc "Bcachefs" "deleteScrubJob" "{\"uuid\":\"$ORPHAN_JOB\"}" &>/dev/null || true
+    else
+        _fail "setScrubJob — could not create the unmounted-filesystem job"
+    fi
+fi
+
+# ===========================================================================
+section "Scrub jobs — cron file"
+# ===========================================================================
+
+# A % in a job comment used to end the cron command (cron turns it into a
+# newline), and the comment was not shell-quoted, so $(...) in it ran as
+# root. Render the cron file and check the job line is safe.
+if [ -n "$SCRUB_JOB_UUID" ]; then
+    CRON_PARAMS=$(echo "$SET_SCRUB_PARAMS" | python3 -c "
+import sys, json
+p = json.load(sys.stdin)
+p['uuid'] = '$SCRUB_JOB_UUID'
+p['sendemail'] = True
+p['comment'] = \"rpc scrub 50% 'done' \$(true)\"
+print(json.dumps(p))")
+    assert_rpc "setScrubJob — comment with %, quotes and \$()" "Bcachefs" \
+        "setScrubJob" "$CRON_PARAMS" >/dev/null
+    if omv-salt deploy run --quiet bcachesfcron &>/dev/null; then
+        CRON_LINE=$(grep -F "omv-bcachefs-scrub '$FS_UUID'" \
+            /etc/cron.d/openmediavault-bcachefs-scrub)
+        EXPECTED="-c 'rpc scrub 50\\% '\\''done'\\'' \$(true)'"
+        if [[ "$CRON_LINE" == *"$EXPECTED"* ]]; then
+            _pass "cron — comment single-quoted and % escaped"
+        else
+            _fail "cron — unexpected job line" "$CRON_LINE"
+        fi
+    else
+        _fail "cron — omv-salt deploy run bcachesfcron failed"
     fi
 fi
 
@@ -898,6 +1219,59 @@ print(json.dumps({
     'devicefiles':       '',
 }))")"
 
+# Values that end up on the format command line are now validated before
+# any device is wiped. Each of these must be rejected up front.
+create_params_with() {  # key value [key value ...] -> createFilesystem JSON
+    python3 - "$@" <<EOF
+import json, sys
+p = {
+    'label': '', 'replicas': 1, 'enablegroups': True,
+    'group1name': 'ssd', 'group1devices': '${DEVICES[0]}',
+    'group2name': '', 'group2devices': '', 'group3name': '', 'group3devices': '',
+    'foreground_target': '', 'promote_target': '', 'background_target': '',
+    'compression': 'none', 'checksum': 'crc32c', 'nocow': False,
+    'encrypted': False, 'passphrase': '', 'autounlock': False, 'devicefiles': '',
+}
+args = sys.argv[1:]
+for k, v in zip(args[::2], args[1::2]):
+    p[k] = v
+print(json.dumps(p))
+EOF
+}
+
+assert_rpc_fails "createFilesystem — group name with a space" "Bcachefs" \
+    "createFilesystem" "$(create_params_with group1name 'ss d')"
+assert_rpc_fails "createFilesystem — group name with a dot" "Bcachefs" \
+    "createFilesystem" "$(create_params_with group1name 'ssd.fast')"
+assert_rpc_fails "createFilesystem — target with shell characters" "Bcachefs" \
+    "createFilesystem" "$(create_params_with foreground_target 'ssd;reboot')"
+assert_rpc_fails "createFilesystem — failure domain with a space" "Bcachefs" \
+    "createFilesystem" "$(create_params_with group1failuredomain 'shelf 1')"
+assert_rpc_fails "createFilesystem — label longer than 32 bytes" "Bcachefs" \
+    "createFilesystem" "$(create_params_with enablegroups false devicefiles "${DEVICES[0]}" \
+        label 'this label is much too long for bcachefs')"
+assert_rpc_fails "createFilesystem — negative missing_dev_timeout" "Bcachefs" \
+    "createFilesystem" "$(create_params_with missing_dev_timeout -5)"
+if /usr/sbin/bcachefs show-super "${DEVICES[0]}" 2>/dev/null | grep -q "^External UUID:.*$FS_UUID"; then
+    _pass "createFilesystem — rejected requests left ${DEVICES[0]} untouched"
+else
+    _fail "createFilesystem — ${DEVICES[0]} was modified by a rejected request"
+fi
+
+assert_rpc_fails "setDeviceFailureDomain — invalid name" "Bcachefs" \
+    "setDeviceFailureDomain" \
+    "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"${DEVICES[0]}\",\"failure_domain\":\"a b\"}"
+assert_rpc_fails "setDeviceFailureDomain — device not in the filesystem" "Bcachefs" \
+    "setDeviceFailureDomain" \
+    "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"/dev/null\",\"failure_domain\":\"x\"}"
+assert_rpc_fails "setDeviceFailureDomain — unknown filesystem" "Bcachefs" \
+    "setDeviceFailureDomain" \
+    "{\"uuid\":\"00000000-0000-0000-0000-000000000000\",\"devicefile\":\"${DEVICES[0]}\",\"failure_domain\":\"x\"}"
+assert_rpc_fails "addDevice — failure domain with shell characters" "Bcachefs" \
+    "addDevice" "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"${DEVICES[0]}\",\"failure_domain\":\"\$(reboot)\"}"
+assert_rpc_fails "removeDevice — negative slot" "Bcachefs" "removeDevice" \
+    "{\"devicefile\":\"\",\"uuid\":\"$FS_UUID\",\"slot\":-1}"
+
 # ===========================================================================
 section "Devices — set-state, evacuate, remove, add"
 # ===========================================================================
@@ -922,7 +1296,70 @@ else
         "{\"devicefile\":\"$LAST_DEV\"}"
     assert_rpc_bg "removeDevice" "Bcachefs" "removeDevice" \
         "{\"devicefile\":\"$LAST_DEV\"}"
-    assert_rpc_bg "addDevice (re-add)" "Bcachefs" "addDevice" \
+    assert_rpc_bg "addDevice (re-add, with failure domain)" "Bcachefs" "addDevice" \
+        "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$LAST_DEV\",\"failure_domain\":\"shelfB\"}"
+    assert_eq "addDevice — failure domain applied" "shelfB" \
+        "$(dev_field "$LAST_DEV" failure_domain)"
+
+    # Failure domains on existing members: put every device in one domain,
+    # check the report groups them, then make each its own domain again.
+    for dev in "${DEVICES[@]}"; do
+        assert_rpc "setDeviceFailureDomain — shelfA on $dev" "Bcachefs" \
+            "setDeviceFailureDomain" \
+            "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$dev\",\"failure_domain\":\"shelfA\"}" >/dev/null
+    done
+    assert_eq "getDeviceList — failure domain shelfA" "shelfA" \
+        "$(dev_field "${DEVICES[0]}" failure_domain)"
+    if /usr/sbin/bcachefs fs failure-domains --help &>/dev/null; then
+        FD_ERR=$(mktemp)
+        if rpc "Bcachefs" "getFailureDomains" "{\"uuid\":\"$FS_UUID\"}" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+names = [x['domain'] for x in d['domains']]
+assert names == ['shelfA'], 'expected only shelfA: %r' % d
+assert d['domains'][0]['devices'] == ${#DEVICES[@]}, d
+" 2>"$FD_ERR"; then
+            _pass "getFailureDomains — all devices in shelfA"
+        else
+            _fail "getFailureDomains — shelfA not reported" "$(tail -1 "$FD_ERR")"
+        fi
+        rm -f "$FD_ERR"
+    fi
+    for dev in "${DEVICES[@]}"; do
+        rpc "Bcachefs" "setDeviceFailureDomain" \
+            "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$dev\",\"failure_domain\":\"\"}" &>/dev/null
+    done
+    assert_eq "setDeviceFailureDomain — empty value clears it" "" \
+        "$(dev_field "${DEVICES[0]}" failure_domain)"
+
+    # Offline / online. The just re-added member holds no data, so taking it
+    # offline cannot make any data unavailable.
+    OFF_SLOT=$(dev_field "$LAST_DEV" slot)
+    assert_rpc "offlineDevice" "Bcachefs" "offlineDevice" \
+        "{\"devicefile\":\"$LAST_DEV\",\"force\":true}" >/dev/null
+    assert_eq "getDeviceList — offline member still listed as offline" "offline" \
+        "$(slot_field "$OFF_SLOT" state)"
+    assert_eq "getDeviceList — offline member not online" "false" \
+        "$(slot_field "$OFF_SLOT" online)"
+    OFF_DEV=$(slot_field "$OFF_SLOT" devicefile)
+    if [ -n "$OFF_DEV" ] && [ "$(realpath "$OFF_DEV" 2>/dev/null)" = "$(realpath "$LAST_DEV")" ]; then
+        _pass "getDeviceList — offline member named by its last device ($OFF_DEV)"
+    else
+        _fail "getDeviceList — offline member device name" "got '$OFF_DEV', expected $LAST_DEV"
+    fi
+    assert_rpc "onlineDevice" "Bcachefs" "onlineDevice" \
+        "{\"devicefile\":\"$LAST_DEV\"}" >/dev/null
+    assert_eq "getDeviceList — member back online" "true" "$(dev_field "$LAST_DEV" online)"
+    assert_eq "getDeviceList — member back to rw" "rw" "$(dev_field "$LAST_DEV" state)"
+
+    # An offline member has no device node, so it is removed by slot.
+    assert_rpc "offlineDevice (for removal)" "Bcachefs" "offlineDevice" \
+        "{\"devicefile\":\"$LAST_DEV\",\"force\":true}" >/dev/null
+    assert_rpc_bg "removeDevice — offline member by slot" "Bcachefs" "removeDevice" \
+        "{\"devicefile\":\"\",\"uuid\":\"$FS_UUID\",\"slot\":\"$OFF_SLOT\"}"
+    assert_eq "removeDevice — offline member gone" "" "$(slot_field "$OFF_SLOT" state)"
+    wipefs -a "$LAST_DEV" &>/dev/null || true
+    assert_rpc_bg "addDevice (re-add after offline removal)" "Bcachefs" "addDevice" \
         "{\"uuid\":\"$FS_UUID\",\"devicefile\":\"$LAST_DEV\"}"
 
     # The UI's "Set failed" button sends state=failed; newer bcachefs-tools
@@ -1038,6 +1475,7 @@ print(json.dumps({
     'enablegroups':      True,
     'group1name':        'ssd',
     'group1devices':     '$GROUP1_DEVS',
+    'group1failuredomain': 'shelfA',
     'group2name':        'hdd',
     'group2devices':     '$GROUP2_DEVS',
     'group3name':        '',
@@ -1086,6 +1524,14 @@ print(json.dumps({
     else
         _fail "tiering — label hdd.hdd1 not found on ${DEVICES[1]}"
     fi
+
+    # Group 1 has a failure domain, group 2 does not. format carries device
+    # options over to later devices, so group 2 must have been reset.
+    TIER_DOMAINS=$(echo "$TIER_SUPER" | awk '
+        /^Device [0-9]+:/      { dev = $2 }
+        /^  Failure domain:/   { print dev $3 }')
+    assert_eq "tiering — only group 1 is in failure domain shelfA" "0:shelfA" \
+        "$TIER_DOMAINS"
 
     # Mount the tiering filesystem (bcachefs accepts colon-separated devices).
     MNT="/srv/dev-disk-by-uuid-${FS_UUID}"
@@ -1159,6 +1605,129 @@ print(json.dumps({
             _fail "mount erasure coding filesystem at $MNT"
         fi
     fi
+fi
+
+# ===========================================================================
+section "Filesystem — label quoting and missing-device timeout"
+# ===========================================================================
+
+# The label used to go onto the format command line unquoted: a space broke
+# the format after the devices had already been wiped, and shell syntax ran.
+if [ -n "$MNT" ] && mountpoint -q "$MNT" 2>/dev/null; then
+    umount -l "$MNT" 2>/dev/null || true
+fi
+wipefs -a "${DEVICES[@]}" 2>/dev/null || true
+
+PWN_FILE=/tmp/omvbcfs-x
+rm -f "$PWN_FILE"
+QUOTE_LABEL='a "b" $(touch /tmp/omvbcfs-x)'   # 29 bytes
+QUOTE_PARAMS=$(python3 - "$QUOTE_LABEL" <<EOF
+import json, sys
+print(json.dumps({
+    'label': sys.argv[1], 'replicas': 1, 'compression': 'none',
+    'checksum': 'crc32c', 'erasurecode': False, 'nocow': False,
+    'encrypted': False, 'passphrase': '', 'autounlock': False,
+    'missing_dev_timeout': 45, 'devicefiles': '${DEVICES[0]}',
+}))
+EOF
+)
+assert_rpc_bg "createFilesystem — label with spaces, quotes and \$()" "Bcachefs" \
+    "createFilesystem" "$QUOTE_PARAMS"
+QUOTE_SUPER=$(/usr/sbin/bcachefs show-super "${DEVICES[0]}" 2>/dev/null || true)
+assert_eq "createFilesystem — label stored verbatim" "$QUOTE_LABEL" \
+    "$(echo "$QUOTE_SUPER" | sed -n 's/^Label:[[:space:]]*//p')"
+if [ ! -e "$PWN_FILE" ]; then
+    _pass "createFilesystem — shell syntax in the label was not executed"
+else
+    _fail "createFilesystem — shell syntax in the label was executed"
+    rm -f "$PWN_FILE"
+fi
+if echo "$QUOTE_SUPER" | grep -qE '^[[:space:]]*missing_dev_timeout:[[:space:]]+45$'; then
+    _pass "createFilesystem — missing_dev_timeout=45 in superblock"
+else
+    _fail "createFilesystem — missing_dev_timeout not set"
+fi
+
+# ===========================================================================
+section "Filesystem — encryption and auto-unlock"
+# ===========================================================================
+
+wipefs -a "${DEVICES[@]}" 2>/dev/null || true
+ENC_PARAMS=$(python3 -c "
+import json
+print(json.dumps({
+    'label': 'omvbcachefsenc', 'replicas': 1, 'compression': 'none',
+    'checksum': 'crc32c', 'erasurecode': False, 'nocow': False,
+    'encrypted': True, 'passphrase': 'test passphrase 123', 'autounlock': True,
+    'devicefiles': '${DEVICES[0]}',
+}))")
+assert_rpc_bg "createFilesystem — encrypted with auto-unlock" "Bcachefs" \
+    "createFilesystem" "$ENC_PARAMS"
+# show-super prints nothing for an encrypted filesystem until its key is in
+# the keyring, so take the UUID from blkid and the state from unlock -c.
+FS_UUID=$(blkid -o value -s UUID "${DEVICES[0]}" 2>/dev/null)
+if [ -n "$FS_UUID" ]; then
+    _pass "createFilesystem (encrypted) — UUID detected: $FS_UUID"
+else
+    _fail "createFilesystem (encrypted) — could not read UUID with blkid"
+fi
+if /usr/sbin/bcachefs unlock -c "${DEVICES[0]}" </dev/null 2>&1 | grep -q "is encrypted"; then
+    _pass "createFilesystem — filesystem is encrypted"
+else
+    _fail "createFilesystem — filesystem is not encrypted"
+fi
+
+KEY_FILE="/etc/bcachefs/keys/${FS_UUID}.key"
+if [ -n "$FS_UUID" ] && [ -f "$KEY_FILE" ] && [ "$(stat -c %a "$KEY_FILE")" = "600" ]; then
+    _pass "createFilesystem — auto-unlock key file written (mode 600)"
+else
+    _fail "createFilesystem — auto-unlock key file missing: $KEY_FILE"
+fi
+
+# Unlock the way the boot service does, then mount without a passphrase.
+UNLOCK_OUT=$(/usr/sbin/omv-bcachefs-autounlock 2>&1)
+if echo "$UNLOCK_OUT" | grep -q "unlocked $FS_UUID\|already unlocked"; then
+    _pass "omv-bcachefs-autounlock — processed $FS_UUID"
+else
+    _fail "omv-bcachefs-autounlock — no result for $FS_UUID" "$UNLOCK_OUT"
+fi
+MNT="/srv/dev-disk-by-uuid-${FS_UUID}"
+mkdir -p "$MNT"
+if mount -t bcachefs "${DEVICES[0]}" "$MNT" </dev/null 2>/dev/null; then
+    _pass "mount encrypted filesystem using the auto-unlock key"
+
+    # Regression: encrypted used to read false for every filesystem.
+    info "unlock -c: $(/usr/sbin/bcachefs unlock -c "${DEVICES[0]}" </dev/null 2>&1 | head -1)"
+    assert_rpc "getFilesystem — encrypted=true" "Bcachefs" "getFilesystem" \
+        "{\"uuid\":\"$FS_UUID\"}" '"encrypted":true' >/dev/null
+    assert_rpc "getFilesystemList — encrypted=true, autounlock=true" "Bcachefs" \
+        "getFilesystemList" "$LIST_PARAMS" '"encrypted":true,"autounlock":true' >/dev/null
+    assert_rpc "getFilesystemList — label of encrypted filesystem" "Bcachefs" \
+        "getFilesystemList" "$LIST_PARAMS" '"label":"omvbcachefsenc"' >/dev/null
+    ENC_STATE=$(dev_field "${DEVICES[0]}" state)
+    assert_eq "getDeviceList — encrypted filesystem member state" "rw" "$ENC_STATE"
+    if [ "$ENC_STATE" != "rw" ]; then
+        info "diagnostics for the failure above:"
+        rpc "Bcachefs" "getDeviceList" "{}" 2>/dev/null | python3 -c "
+import sys, json
+for r in json.load(sys.stdin):
+    if r.get('filesystem') == '$FS_UUID':
+        print('    row:', json.dumps(r))" >&2
+        for d in /sys/fs/bcachefs/*/dev-*; do
+            echo "    $d: block -> $(readlink "$d/block" 2>&1);" \
+                "state=[$(cat "$d/state" 2>&1)]" >&2
+        done
+        grep " /srv/dev-disk-by-uuid-$FS_UUID " /proc/mounts | sed 's/^/    mounts: /' >&2
+        /usr/sbin/bcachefs show-super "${DEVICES[0]}" </dev/null 2>&1 \
+            | grep -nE '^(External|Device [0-9])|State:' | sed 's/^/    show-super: /' >&2
+    fi
+
+    # show-super exits non-zero on an encrypted filesystem; the core
+    # Filesystems "Details" view must still show the superblock.
+    assert_rpc "FileSystemMgmt getDetails — encrypted filesystem" "FileSystemMgmt" \
+        "getDetails" "{\"devicefile\":\"${DEVICES[0]}\"}" "$FS_UUID" >/dev/null
+else
+    _fail "mount encrypted filesystem using the auto-unlock key"
 fi
 
 # ===========================================================================
