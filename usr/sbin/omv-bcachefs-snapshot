@@ -90,11 +90,15 @@ mapfile -t SNAPS < <(find "${SNAPDIR}" -maxdepth 1 -mindepth 1 \
     -name "${PREFIX}-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]" \
     | sort 2>/dev/null || true)
 
+# Never fall back to deleting files: if bcachefs refuses, the entry is not a
+# snapshot (or is busy), and it is reported and left alone.
+prune_failed=0
 _delete_snap() {
     local snap="$1"
     echo "$(date -Iseconds): Pruning old snapshot ${snap}"
-    if ! bcachefs subvolume delete "${snap}" 2>/dev/null; then
-        rm -rf -- "${snap}"
+    if ! bcachefs subvolume delete "${snap}"; then
+        echo "$(date -Iseconds): WARNING: could not delete ${snap}" >&2
+        prune_failed=1
     fi
 }
 
@@ -125,3 +129,4 @@ FINAL_COUNT=$(find "${SNAPDIR}" -maxdepth 1 -mindepth 1 \
     -name "${PREFIX}-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]" \
     | wc -l 2>/dev/null || echo 0)
 echo "$(date -Iseconds): Done. ${SNAPDIR} has ${FINAL_COUNT} snapshot(s) matching prefix '${PREFIX}'."
+exit "${prune_failed}"

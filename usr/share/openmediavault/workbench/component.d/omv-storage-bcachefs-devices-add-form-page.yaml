@@ -42,6 +42,19 @@ data:
         label: _("Label group")
         value: ""
         hint: _("Optional label group to place this device in (e.g. 'hdd.hdd3') for tiering. Leave empty for no group.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
+      - type: textInput
+        name: failure_domain
+        label: _("Failure domain")
+        value: ""
+        hint: _("Optional failure domain (e.g. the enclosure or controller the device is attached to). bcachefs never keeps two copies of the same data in one failure domain. Leave empty to make the device its own failure domain.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
     buttons:
       - template: submit
         text: _("Add")
@@ -58,6 +71,7 @@ data:
                   uuid: '{{ uuid }}'
                   devicefile: '{{ devicefile }}'
                   label: '{{ label }}'
+                  failure_domain: '{{ failure_domain }}'
             successUrl: /storage/bcachefs/devices
       - template: cancel
         execute:

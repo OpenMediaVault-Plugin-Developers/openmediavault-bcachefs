@@ -60,6 +60,26 @@ data:
         max: 10
         step: 1
         hint: _("Number of copies kept for data. Reducing below the device count frees space; increasing requires enough devices.")
+      - type: select
+        name: write_degraded
+        label: _("Write when degraded")
+        value: "degraded"
+        hint: _("Policy for writes that cannot get the configured number of replicas because devices are missing or failing. Degraded is the bcachefs default. No fails such writes instead of writing fewer copies.")
+        store:
+          data:
+            - - "degraded"
+              - _("Degraded")
+            - - "yes"
+              - _("Yes")
+            - - "no"
+              - _("No")
+      - type: numberInput
+        name: missing_dev_timeout
+        label: _("Missing device timeout")
+        value: 0
+        min: 0
+        step: 1
+        hint: _("Seconds to wait at mount for member devices that have not appeared yet (e.g. slow USB or SAS enclosures) before mounting degraded. 0 uses the built-in default.")
       - type: textInput
         name: foreground_target
         label: _("Foreground Target")

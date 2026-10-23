@@ -25,6 +25,12 @@ data:
         disabled: true
         rows: 24
         hint: _("Output of 'bcachefs fs usage' (per-device capacity, replication and degraded data), with reconcile/rebalance status when supported.")
+      - type: textarea
+        name: failuredomains
+        label: _("Failure domains")
+        disabled: true
+        rows: 12
+        hint: _("What losing each failure domain would cost. Devices without a failure domain are their own. Any 'lost' data means copies are not separated across failure domains.")
     buttons:
       - template: cancel
         text: _("Back")

@@ -26,6 +26,10 @@ data:
         prop: group
         flexGrow: 2
         sortable: true
+      - name: _("Failure domain")
+        prop: failure_domain
+        flexGrow: 2
+        sortable: true
       - name: _("State")
         prop: state
         flexGrow: 1
@@ -48,6 +52,9 @@ data:
             spare:
               value: _("spare")
               class: omv-background-color-pair-blue
+            offline:
+              value: _("offline")
+              class: omv-background-color-pair-warning
       - name: _("Size")
         prop: size
         flexGrow: 1
@@ -59,6 +66,11 @@ data:
       - name: _("Mountpoint")
         prop: mountpoint
         flexGrow: 2
+        sortable: true
+        hidden: true
+      - name: _("Slot")
+        prop: slot
+        flexGrow: 1
         sortable: true
         hidden: true
     actions:
@@ -75,6 +87,9 @@ data:
           minSelected: 1
           maxSelected: 1
           constraint:
+            - operator: truthy
+              arg0:
+                prop: online
             - operator: ne
               arg0:
                 prop: state
@@ -94,6 +109,9 @@ data:
           minSelected: 1
           maxSelected: 1
           constraint:
+            - operator: truthy
+              arg0:
+                prop: online
             - operator: ne
               arg0:
                 prop: state
@@ -116,6 +134,9 @@ data:
           minSelected: 1
           maxSelected: 1
           constraint:
+            - operator: truthy
+              arg0:
+                prop: online
             - operator: ne
               arg0:
                 prop: state
@@ -133,11 +154,97 @@ data:
               devicefile: "{{ _selected[0].devicefile }}"
               state: "failed"
       - type: iconButton
+        icon: mdi:shield-home-outline
+        tooltip: _("Set failure domain")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: truthy
+              arg0:
+                prop: online
+        execute:
+          type: formDialog
+          formDialog:
+            title: _("Set failure domain")
+            fields:
+              - type: hidden
+                name: uuid
+                value: "{{ _selected[0].filesystem }}"
+              - type: textInput
+                name: devicefile
+                label: _("Device")
+                value: "{{ _selected[0].devicefile }}"
+                readonly: true
+              - type: textInput
+                name: failure_domain
+                label: _("Failure domain")
+                value: "{{ _selected[0].failure_domain }}"
+                hint: _("Devices that can fail together (same enclosure, controller or power supply) should share a failure domain; bcachefs never keeps two copies of the same data in one domain. Leave empty to make the device its own failure domain.")
+                validators:
+                  pattern:
+                    pattern: '^[A-Za-z0-9_.-]*$'
+                    errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
+            buttons:
+              submit:
+                text: _("Save")
+                execute:
+                  type: request
+                  request:
+                    service: Bcachefs
+                    method: setDeviceFailureDomain
+                    successNotification: _("Failure domain updated.")
+      - type: iconButton
+        icon: mdi:power-plug-off-outline
+        tooltip: _("Take offline")
+        confirmationDialogConfig:
+          template: confirmation-danger
+          message: _("Take this device offline? The filesystem keeps running without it, with reduced redundancy, until it is brought back online. Data that has no other copy becomes unavailable.")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: truthy
+              arg0:
+                prop: online
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: offlineDevice
+            params:
+              devicefile: "{{ _selected[0].devicefile }}"
+              force: true
+      - type: iconButton
+        icon: mdi:power-plug-outline
+        tooltip: _("Bring online")
+        enabledConstraints:
+          minSelected: 1
+          maxSelected: 1
+          constraint:
+            - operator: falsy
+              arg0:
+                prop: online
+            - operator: truthy
+              arg0:
+                prop: devicefile
+        execute:
+          type: request
+          request:
+            service: Bcachefs
+            method: onlineDevice
+            params:
+              devicefile: "{{ _selected[0].devicefile }}"
+      - type: iconButton
         icon: mdi:export
         tooltip: _("Evacuate (move data off)")
         enabledConstraints:
           minSelected: 1
           maxSelected: 1
+          constraint:
+            - operator: truthy
+              arg0:
+                prop: online
         execute:
           type: taskDialog
           taskDialog:
@@ -170,4 +277,6 @@ data:
                 method: removeDevice
                 params:
                   devicefile: "{{ _selected[0].devicefile }}"
+                  uuid: "{{ _selected[0].filesystem }}"
+                  slot: "{{ _selected[0].slot }}"
             successUrl: "/storage/bcachefs/devices"

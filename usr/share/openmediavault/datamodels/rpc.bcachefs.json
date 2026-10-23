@@ -83,6 +83,7 @@
       "properties": {
         "label": {
           "type": "string",
+          "maxLength": 32,
           "required": false
         },
         "replicas": {
@@ -93,14 +94,17 @@
         },
         "foreground_target": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "promote_target": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "background_target": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "compression": {
@@ -139,6 +143,12 @@
         },
         "group1name": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_-]*$",
+          "required": false
+        },
+        "group1failuredomain": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "group1devices": {
@@ -147,6 +157,12 @@
         },
         "group2name": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_-]*$",
+          "required": false
+        },
+        "group2failuredomain": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "group2devices": {
@@ -155,6 +171,12 @@
         },
         "group3name": {
           "type": "string",
+          "pattern": "^[A-Za-z0-9_-]*$",
+          "required": false
+        },
+        "group3failuredomain": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]*$",
           "required": false
         },
         "group3devices": {
@@ -163,6 +185,11 @@
         },
         "devicefiles": {
           "type": "string",
+          "required": false
+        },
+        "missing_dev_timeout": {
+          "type": "integer",
+          "minimum": 0,
           "required": false
         }
       }
@@ -185,9 +212,19 @@
           "enum": ["none", "lz4", "gzip", "zstd"],
           "required": false
         },
-        "foreground_target": { "type": "string", "required": false },
-        "background_target": { "type": "string", "required": false },
-        "promote_target": { "type": "string", "required": false },
+        "foreground_target": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": false },
+        "background_target": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": false },
+        "promote_target": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": false },
+        "write_degraded": {
+          "type": "string",
+          "enum": ["degraded", "yes", "no"],
+          "required": false
+        },
+        "missing_dev_timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "required": false
+        },
         "data_replicas": {
           "type": "number",
           "minimum": 1,
@@ -205,7 +242,43 @@
       "properties": {
         "uuid": { "type": "string", "required": true },
         "devicefile": { "type": "string", "required": true },
-        "label": { "type": "string", "required": false }
+        "label": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": false },
+        "failure_domain": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": false }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.setdevicefailuredomain",
+    "params": {
+      "type": "object",
+      "properties": {
+        "uuid": { "type": "string", "required": true },
+        "devicefile": { "type": "string", "required": true },
+        "failure_domain": { "type": "string", "pattern": "^[A-Za-z0-9_.-]*$", "required": true }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.removedevice",
+    "params": {
+      "type": "object",
+      "properties": {
+        "devicefile": { "type": "string", "required": true },
+        "uuid": { "type": "string", "required": false },
+        "slot": { "type": "integer", "minimum": 0, "required": false }
+      }
+    }
+  },
+  {
+    "type": "rpc",
+    "id": "rpc.bcachefs.offlinedevice",
+    "params": {
+      "type": "object",
+      "properties": {
+        "devicefile": { "type": "string", "required": true },
+        "force": { "type": "boolean", "required": false }
       }
     }
   },

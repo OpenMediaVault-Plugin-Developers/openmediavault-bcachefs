@@ -11,15 +11,6 @@ if [ ! -d "$KEYS_DIR" ]; then
     exit 0
 fi
 
-# Detect whether this bcachefs-tools build supports `wait-devices` (added in
-# bcachefs-tools 1.38.1). When available we use it to wait for all member
-# devices of a multi-device filesystem to appear before unlocking, avoiding
-# boot-time races.
-wait_devices_supported=0
-if /usr/sbin/bcachefs wait-devices --help >/dev/null 2>&1; then
-    wait_devices_supported=1
-fi
-
 for keyfile in "$KEYS_DIR"/*.key; do
     [ -f "$keyfile" ] || continue
 
@@ -31,16 +22,10 @@ for keyfile in "$KEYS_DIR"/*.key; do
         continue
     fi
 
-    # Wait for all member devices of the (possibly multi-device) filesystem to
-    # be present before attempting to unlock. Bounded so a missing/failed
-    # device cannot stall boot indefinitely.
-    # wait-devices only accepts a "UUID=<uuid>" device string, not a path.
-    if [ "$wait_devices_supported" -eq 1 ]; then
-        timeout 30 /usr/sbin/bcachefs wait-devices "UUID=$uuid" 2>/dev/null || \
-            echo "bcachefs-autounlock: wait-devices failed for $uuid, continuing" >&2
-    fi
-
-    if /usr/sbin/bcachefs unlock "$device" < "$keyfile" 2>/dev/null; then
+    # Unlocking needs only one member's superblock, so there is no need to
+    # wait for the other members here; mount handles slow devices itself
+    # (see the missing_dev_timeout option).
+    if /usr/sbin/bcachefs unlock -f "$keyfile" "$device" </dev/null 2>/dev/null; then
         echo "bcachefs-autounlock: unlocked $uuid"
     else
         echo "bcachefs-autounlock: failed to unlock $uuid (wrong passphrase or already unlocked)" >&2

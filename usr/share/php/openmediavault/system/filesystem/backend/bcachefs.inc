@@ -64,15 +64,8 @@ class Bcachefs extends BackendAbstract {
 		return $result;
 	}
 
-	public function getFstabMntOptions(
-	  \OMV\System\Storage\StorageDevice $sd = null) {
-		$options = parent::getFstabMntOptions($sd);
-		if (!is_null($sd)) {
-			if (!$sd->isRotational())
-				$options[] = "ssd";
-		}
-		return $options;
-	}
+	// No getFstabMntOptions() override: "ssd" is a btrfs mount option that
+	// bcachefs does not have. bcachefs detects rotational devices itself.
 
 	function getImpl($args) {
 		$object = new \OMV\System\Filesystem\Bcachefs($args);

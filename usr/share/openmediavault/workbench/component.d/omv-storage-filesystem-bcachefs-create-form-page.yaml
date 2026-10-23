@@ -23,6 +23,8 @@ data:
         label: _("Label")
         value: ""
         hint: _("Optional label to identify this filesystem.")
+        validators:
+          maxLength: 32
       - type: select
         name: devicefiles
         label: _("Devices")
@@ -85,6 +87,10 @@ data:
         value: ""
         placeholder: "ssd"
         hint: _("Label group name (e.g. 'ssd'). Devices will be labeled group.group1, group.group2, etc.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_-]*$'
+            errorData: _("Only letters, digits, '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -113,11 +119,30 @@ data:
               arg0:
                 prop: enablegroups
       - type: textInput
+        name: group1failuredomain
+        label: _("Group 1 Failure Domain")
+        value: ""
+        hint: _("Optional failure domain for every device in this group (e.g. the enclosure or controller they share). bcachefs never keeps two copies of the same data in one failure domain. Leave empty to make each device its own failure domain.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
         name: group2name
         label: _("Group 2 Name")
         value: ""
         placeholder: "hdd"
         hint: _("Label group name (e.g. 'hdd').")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_-]*$'
+            errorData: _("Only letters, digits, '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -146,10 +171,29 @@ data:
               arg0:
                 prop: enablegroups
       - type: textInput
+        name: group2failuredomain
+        label: _("Group 2 Failure Domain")
+        value: ""
+        hint: _("Optional failure domain for every device in this group (e.g. the enclosure or controller they share). bcachefs never keeps two copies of the same data in one failure domain. Leave empty to make each device its own failure domain.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
         name: group3name
         label: _("Group 3 Name")
         value: ""
         hint: _("Optional third group. Leave empty if not needed.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_-]*$'
+            errorData: _("Only letters, digits, '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -178,10 +222,29 @@ data:
               arg0:
                 prop: enablegroups
       - type: textInput
+        name: group3failuredomain
+        label: _("Group 3 Failure Domain")
+        value: ""
+        hint: _("Optional failure domain for every device in this group (e.g. the enclosure or controller they share). bcachefs never keeps two copies of the same data in one failure domain. Leave empty to make each device its own failure domain.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
+        modifiers:
+          - type: hidden
+            constraint:
+              operator: falsy
+              arg0:
+                prop: enablegroups
+      - type: textInput
         name: foreground_target
         label: _("Foreground Target")
         value: ""
         hint: _("Label group where new data is written first (e.g. 'ssd'). Leave empty to use bcachefs defaults.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -193,6 +256,10 @@ data:
         label: _("Promote Target")
         value: ""
         hint: _("Label group where frequently-read data is promoted to (e.g. 'ssd'). Leave empty to disable promotion.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -204,6 +271,10 @@ data:
         label: _("Background Target")
         value: ""
         hint: _("Label group where data is moved to in the background (e.g. 'hdd'). Leave empty to use bcachefs defaults.")
+        validators:
+          pattern:
+            pattern: '^[A-Za-z0-9_.-]*$'
+            errorData: _("Only letters, digits, '.', '_' and '-' are allowed.")
         modifiers:
           - type: hidden
             constraint:
@@ -249,6 +320,13 @@ data:
         label: _("Erasure coding")
         value: false
         hint: _("Enable erasure coding (parity-based redundancy, RAID5/6-style) for more efficient space usage than full replicas. Requires at least 3 devices. Combine with replicas for metadata protection.")
+      - type: numberInput
+        name: missing_dev_timeout
+        label: _("Missing device timeout")
+        value: 0
+        min: 0
+        step: 1
+        hint: _("Seconds to wait at mount for member devices that have not appeared yet (e.g. slow USB or SAS enclosures) before mounting degraded. 0 uses the built-in default.")
       - type: checkbox
         name: nocow
         label: _("Disable COW")
@@ -343,6 +421,10 @@ data:
                   group2devices: '{{ group2devices }}'
                   group3name: '{{ group3name }}'
                   group3devices: '{{ group3devices }}'
+                  group1failuredomain: '{{ group1failuredomain }}'
+                  group2failuredomain: '{{ group2failuredomain }}'
+                  group3failuredomain: '{{ group3failuredomain }}'
+                  missing_dev_timeout: '{{ missing_dev_timeout }}'
                   foreground_target: '{{ foreground_target }}'
                   promote_target: '{{ promote_target }}'
                   background_target: '{{ background_target }}'

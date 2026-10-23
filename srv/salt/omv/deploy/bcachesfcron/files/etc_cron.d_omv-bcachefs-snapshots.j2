@@ -1,5 +1,9 @@
 # Managed by openmediavault-bcachefs plugin. Do not edit manually.
 {%- set separator = ' ' -%}
+{#- quote a value as one shell word; cron turns an unescaped % into a newline -#}
+{%- macro shq(value) -%}
+'{{ value | string | replace('\n', ' ') | replace("'", "'\\''") | replace('%', '\\%') }}'
+{%- endmacro -%}
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # m h dom mon dow user    command
@@ -12,9 +16,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 {%- else -%}
 @{{ job.execution }}
 {%- endif -%}
-{{ separator }}root{{ separator }}/usr/sbin/omv-bcachefs-snapshot {{ job.subvolume | quote }} {{ job.prefix | quote }} {{ job.retention }}
+{{ separator }}root{{ separator }}/usr/sbin/omv-bcachefs-snapshot {{ shq(job.subvolume) }} {{ shq(job.prefix) }} {{ job.retention }}
 {%- if (job.retentionunit | default('count')) != 'count' %} -u {{ job.retentionunit }}{% endif -%}
 {%- if job.readonly | default(false) | to_bool %} -r{% endif -%}
-{%- if job.sendemail | to_bool %} -e {{ 'onerror' if job.emailonerror | to_bool else 'always' }}{% if job.comment | length > 0 %} -c "{{ job.comment | replace('\n', ' ') }}"{% endif %}{% endif -%}
+{%- if job.sendemail | to_bool %} -e {{ 'onerror' if job.emailonerror | to_bool else 'always' }}{% if job.comment | length > 0 %} -c {{ shq(job.comment) }}{% endif %}{% endif -%}
 {{ separator }}>/dev/null 2>&1
 {%- endfor %}

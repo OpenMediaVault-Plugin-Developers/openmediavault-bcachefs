@@ -42,7 +42,35 @@ _send_email() {
 }
 trap '_send_email $?' EXIT
 
-FSDEV="/dev/disk/by-uuid/${UUID}"
-echo "$(date -Iseconds): Starting bcachefs scrub on ${FSDEV} (UUID: ${UUID})"
-bcachefs scrub "${FSDEV}"
+# Scrub through the mount point. Given a device path, bcachefs scrubs only
+# that one member, and /dev/disk/by-uuid/<uuid> points at a single member of
+# a multi-device filesystem.
+MOUNTPOINT=$(awk -v uuid="${UUID}" '
+    $3 == "bcachefs" && $2 ~ ("dev-disk-by-uuid-" uuid "$") { print $2; exit }
+' /proc/mounts)
+MOUNTPOINT=$(printf '%b' "${MOUNTPOINT}")
+if [ -z "${MOUNTPOINT}" ]; then
+    echo "$(date -Iseconds): ERROR: bcachefs filesystem ${UUID} is not mounted" >&2
+    exit 1
+fi
+
+echo "$(date -Iseconds): Starting bcachefs scrub on ${MOUNTPOINT} (UUID: ${UUID})"
+bcachefs scrub "${MOUNTPOINT}"
 echo "$(date -Iseconds): Scrub completed successfully."
+
+# Scrub repairs what it can from other copies; files it could not repair
+# are recorded as damaged (bcachefs-tools 1.39.5+). List them so they show
+# up in the log and the notification email, and fail the job so "on error"
+# notifications fire. Records stay until cleared under Storage > Bcachefs.
+if bcachefs damage --help >/dev/null 2>&1; then
+    damaged=$(bcachefs damage ls -R "${MOUNTPOINT}" 2>&1) || {
+        echo "$(date -Iseconds): WARNING: could not list damaged files: ${damaged}"
+        exit 0
+    }
+    if [ -n "${damaged}" ]; then
+        echo "$(date -Iseconds): Damaged files recorded on ${MOUNTPOINT}:"
+        printf '%s\n' "${damaged}"
+        exit 2
+    fi
+    echo "$(date -Iseconds): No damaged files recorded."
+fi
